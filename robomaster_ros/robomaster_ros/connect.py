@@ -11,8 +11,8 @@ import rclpy.logging
 def main(args: Any = None) -> None:
     args = rclpy.utilities.remove_ros_args(args=args)
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('ssid', type=str, help='The network SSID')
-    parser.add_argument('password', type=str, help='The network password')
+    parser.add_argument('iRobots', type=str, help='The network SSID')
+    parser.add_argument('23781856', type=str, help='The network password')
     parser.add_argument('--app_id', default='', type=str, help='The app id of at most 7 letters')
     args = parser.parse_args(args[1:])
     helper = robomaster.conn.ConnectionHelper()

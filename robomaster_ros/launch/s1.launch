@@ -12,4 +12,8 @@
      if="$(eval '\'$(var display_battery)\' != \'off\'')">
     <param name='side' value="$(var display_battery)"/>
   </node>
+
+  <node name="joint_state_publisher_node" pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui">
+      <param name='source_list' value="/set_joint_states"/>
+    </node>
 </launch>

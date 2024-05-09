@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="name" default=""/>
-  <arg name="model" default="ep"/>
+  <arg name="model" default="s1"/>
   <arg name="joy_index" default="0"/>
 
   <push-ros-namespace namespace="$(var name)"/>

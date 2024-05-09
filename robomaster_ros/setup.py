@@ -31,6 +31,7 @@ setup(
             'display_battery = robomaster_ros.display_battery:main',
             'connect = robomaster_ros.connect:main',
             'discover = robomaster_ros.discover:main',
+            'control = robomaster_ros.control:main',
         ],
     },
 )
