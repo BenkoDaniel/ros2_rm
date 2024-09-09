@@ -11,7 +11,7 @@
   </node>
 
   <node pkg="joy_teleop" exec="joy_teleop" name="joy_teleop" output="screen" args="--ros-args --log-level info">
-    <param from="$(find-pkg-share robomaster_ros)/config/joy_config_s1.yaml"/>
+    <param from="$(find-pkg-share robomaster_ros)/config/joy_config_s1_forps4.yaml"/>
     <!-- <param from="$(find-pkg-share robomaster_apps)/config/joy_config_ad.yaml"/> -->
   </node>
 

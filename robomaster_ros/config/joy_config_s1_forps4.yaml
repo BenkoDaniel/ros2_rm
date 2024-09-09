@@ -35,7 +35,7 @@
       type: topic
       interface_type: "geometry_msgs/msg/Twist"
       topic_name: cmd_vel
-      deadman_buttons: [5]  # RT R1 + bal joy
+      #deadman_buttons: [5]  # RT R1 + bal joy
       axis_mappings:
         linear-x:
           axis: 0  #vizszintes
@@ -53,7 +53,7 @@
       type: topic
       interface_type: "robomaster_msgs/msg/GimbalCommand"
       topic_name: cmd_gimbal
-      deadman_buttons: [5]  # RT R1+jobb joy
+      #deadman_buttons: [6]  # RT L1+jobb joy
       axis_mappings:
         yaw_speed:
           axis: 3    #vizszintes
