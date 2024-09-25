@@ -1,5 +1,5 @@
 FROM ros:humble
-MAINTAINER Jerome Guzzi "jerome@idsia.ch"
+#MAINTAINER Jerome Guzzi "jerome@idsia.ch"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     locales \
@@ -22,11 +22,12 @@ RUN mkdir -p /ros_ws/src \
     && git clone https://github.com/ros/urdfdom.git --branch humble src/urdfdom \
     && git clone https://github.com/berndpfrommer/ffmpeg_image_transport_msgs.git \
     && source /ros_entrypoint.sh \
+    #&& source /opt/ros/humble/setup.bash \
     && colcon build --install-base /opt/ros/ws --merge-install \
     && rm -r /ros_ws
 
 RUN /bin/sed -i \
-  '/source "\/opt\/ros\/$ROS_DISTRO\/setup.bash"/a source "\/opt\/ros\/ws\/setup.bash"' \
+  '/source "\/opt\/ros\/humble\/setup.bash"/a source "\/opt\/ros\/ws\/setup.bash"' \
   /ros_entrypoint.sh
 
 RUN python3 -m pip install -U numpy numpy-quaternion PyYaml av
@@ -37,6 +38,9 @@ RUN mkdir -p /ros_ws/src \
     && cd /ros_ws \
     && git clone https://github.com/jeguzzi/robomaster_ros.git src/robomaster_ros \
     && source /ros_entrypoint.sh \
-    && colcon build --install-base /opt/ros/ws --merge-install \
-    && rm -r /ros_ws
+    #&& source /opt/ros/humble/setup.bash \
+    && colcon build --install-base /opt/ros/ws --merge-install
+    #&& rm -r /ros_ws
 
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]

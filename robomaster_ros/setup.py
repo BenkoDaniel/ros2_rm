@@ -32,6 +32,7 @@ setup(
             'connect = robomaster_ros.connect:main',
             'discover = robomaster_ros.discover:main',
             'control = robomaster_ros.control:main',
+            'balltracker = robomaster_ros.balltracker:main'
         ],
     },
 )
