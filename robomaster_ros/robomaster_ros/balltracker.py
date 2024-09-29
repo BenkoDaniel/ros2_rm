@@ -35,17 +35,14 @@ class BallTracker(Node):
 
         # Iterate through the detected objects
         for _, row in df.iterrows():
-            # Extract the bounding box coordinates
+
             x1, y1, x2, y2 = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
 
-            # Highlight the detected object (circle/ball)
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-            # Add text with confidence score
             cv2.putText(image, f"{row['name']} {row['confidence']:.2f}", (x1, y1 - 5),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
 
-        # Display the processed image
         return image
 
 
