@@ -4,6 +4,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
+from geometry_msgs.msg import GimbalCommand
 
 
 class BallTracker(Node):
@@ -18,6 +19,7 @@ class BallTracker(Node):
             '/camera/image_color',
             self.cb_camera,
             10)
+        self.gimbal_pub = self.create_publisher(GimbalCommand, '/cmd_gimbal', 10)
 
     def cb_camera(self, msg):
         try:
@@ -32,16 +34,27 @@ class BallTracker(Node):
     def find_ball(self, image):
         results = self.yolomodel(image)
         df = results.pandas().xyxy[0]
-
-        # Iterate through the detected objects
         for _, row in df.iterrows():
 
             x1, y1, x2, y2 = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
 
-            cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            if row['name'] == "sports ball":
+                if row['confidence'] > 0.50:
+                    cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                    cv2.putText(image, f"{row['name']} {row['confidence']:.2f}", (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
 
-            cv2.putText(image, f"{row['name']} {row['confidence']:.2f}", (x1, y1 - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+        loop_rate = self.create_rate(100, self.get_clock())
+        speed = self.get_parameter('speed').get_parameter_value().double_value
+        gimbal_msg = GimbalCommand()
+        gimbal_msg.pitch_speed = 0.0
+        gimbal_msg.jaw_speed = 0.0
+
+        center_x = int((x1 + x2) / 2)
+        center_y = int((y1 + y2) / 2)
+        dx =
+
 
         return image
 
