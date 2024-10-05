@@ -5,13 +5,14 @@ from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Point
+#import ultralytics
 
 class BallTracker(Node):
 
     def __init__(self):
         super().__init__('Ball_tracker')
         self.bridge = CvBridge()
-        self.yolomodel = torch.hub.load("ultralytics/yolov5", "yolov5s")
+        self.yolomodel = torch.hub.load("ultralytics/yolov5", "yolov5s") #YOLOv5 Nano model: yolov5n
         self.camera = None
         self.subscripiton = self.create_subscription(
             Image,
@@ -34,7 +35,7 @@ class BallTracker(Node):
             center_y = 0.5*rows
             point.x = (ball_x - center_x)/center_x
             point.y = (ball_y - center_y)/center_y
-            if point.x > 0:
+            if point.x != 0:
                 point.z = 1.0
                 self.ballpub.publish(point)
             else:
@@ -64,7 +65,6 @@ class BallTracker(Node):
                     cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
                     center_x = int((x1 + x2) / 2)
                     center_y = int((y1 + y2) / 2)
-                    #print(center_x, center_y)
                     cv2.putText(image, f"{row['name']} {row['confidence']:.2f}", (x1, y1 - 5),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
 
