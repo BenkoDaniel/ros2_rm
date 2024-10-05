@@ -30,11 +30,15 @@ class BallTracker(Node):
             point = Point()
             rows = float(cv_image.shape[0])
             cols = float(cv_image.shape[1])
-            center_x    = 0.5*cols
-            center_y    = 0.5*rows
+            center_x = 0.5*cols
+            center_y = 0.5*rows
             point.x = (ball_x - center_x)/center_x
             point.y = (ball_y - center_y)/center_y
             if point.x > 0:
+                point.z = 1.0
+                self.ballpub.publish(point)
+            else:
+                point.z = 0.0
                 self.ballpub.publish(point)
 
 
