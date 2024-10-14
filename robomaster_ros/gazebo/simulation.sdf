@@ -1,0 +1,16 @@
+<?xml version='1.0'?>
+<sdf version="1.4">
+  <world name="robomaster_sim">
+    <include>
+        <uri>model://ground_plane</uri>
+    </include>
+
+    <include>
+        <uri>model://walls</uri>
+    </include>
+
+    <include>
+        <uri>model://ball</uri>
+    </include>
+  </world>
+</sdf>
