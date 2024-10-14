@@ -4,13 +4,14 @@
     <include>
         <uri>model://ground_plane</uri>
     </include>
-
     <include>
         <uri>model://walls</uri>
     </include>
-
     <include>
         <uri>model://ball</uri>
+    </include>
+    <include>
+        <uri>model://robomaster</uri>
     </include>
   </world>
 </sdf>
