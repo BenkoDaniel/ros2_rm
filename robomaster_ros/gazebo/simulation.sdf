@@ -10,8 +10,5 @@
     <include>
         <uri>model://ball</uri>
     </include>
-    <include>
-        <uri>model://robomaster</uri>
-    </include>
   </world>
 </sdf>

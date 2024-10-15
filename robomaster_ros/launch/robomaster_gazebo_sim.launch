@@ -1,0 +1,9 @@
+<launch>
+    <!-- Launch Gazebo -->
+    <include file="$(find gazebo_ros)/launch/gazebo.launch">
+        <arg name="world_file" value="$(find robomaster_ros)/gazebo/simulation.sdf"/>
+    </include>
+
+    <!-- Spawn your robot from the robot_description topic -->
+    <node pkg="gazebo_ros" type="spawn_entity.py" name="spawn_urdf" args="-entity robomaster -topic /robot_description"/>
+</launch>
