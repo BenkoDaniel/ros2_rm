@@ -332,6 +332,6 @@
       <color rgba="0.06401 0.06401 0.06401 1.0" />
     </material>
 
-    </xacro:macro>
+  </xacro:macro>
 
-  </robot>
+</robot>

@@ -1,20 +1,19 @@
 import os
 from launch import LaunchDescription
 from launch.actions import ExecuteProcess
+from launch.substitutions import Command, LaunchConfiguration
 import launch_ros
 
 def generate_launch_description():
-    pkg_share = launch_ros.substitutions.FindPackageShare(package='robomaster_ros').find('robomaster_ros')
-    world_file = os.path.join(pkg_share, 'gazebo/simulation.sdf')
+    pkg_src = launch_ros.substitutions.FindPackageShare(package='robomaster_description').find('robomaster_description')
+    world_file = os.path.join(pkg_src, 'Gazebo/simulation.sdf')
 
     return LaunchDescription([
         ExecuteProcess(
-            cmd=['gazebo', '--verbose', world_file, '-u'],
+            cmd=['gzserver', '-s', 'libgazebo_ros_factory.so', world_file, '-u'],
+            output='screen',
             shell=True
         ),
-        launch_ros.actions.Node(
-            package='gazebo_ros',
-            executable='spawn_entity.py',
-            arguments=['-entity', 'robomaster_ros', '-topic', 'robot_description'],
-            output='screen')
+
+
     ])

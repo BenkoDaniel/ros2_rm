@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-  <robot xmlns:xacro="http://playerstage.sourceforge.net/gazebo/xmlschema/#xacro">
+<robot xmlns:xacro="http://playerstage.sourceforge.net/gazebo/xmlschema/#xacro">
 
   <xacro:include filename="led.urdf.xacro"/>
   <xacro:include filename="wheel.urdf.xacro"/>
@@ -126,4 +126,4 @@
 
 
   </xacro:macro>
-  </robot>
+</robot>
