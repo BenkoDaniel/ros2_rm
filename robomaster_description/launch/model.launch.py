@@ -51,7 +51,7 @@ def robot_state_publisher(context: LaunchContext,
                           **substitutions: launch.substitutions.LaunchConfiguration
                           ) -> List[Node]:
     kwargs = {k: perform_substitutions(context, [v]) for k, v in substitutions.items()}
-    params = {'robot_description': urdf(**kwargs), 'publish_frequency': 100.0}
+    params = {'robot_description': urdf(**kwargs), 'publish_frequency': 100.0, 'use_sim_time': True}
     # with open('test.urdf', 'w+') as f:
     #     f.write(params['robot_description'])
     node = Node(

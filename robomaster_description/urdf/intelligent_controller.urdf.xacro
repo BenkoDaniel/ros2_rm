@@ -11,21 +11,21 @@
       <visual name="intelligent_controller">
         <origin xyz="0 0 -0.0095231" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/intelligent_controller.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/intelligent_controller.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="intelligent_controller"/>
       </visual>
       <visual name="wifi_antenna_left">
         <origin xyz="-0.0147105 0.0344787 0.0032872" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/wifi_antenna_left.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/wifi_antenna_left.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="intelligent_controller"/>
       </visual>
       <visual name="wifi_antenna_right">
         <origin xyz="-0.0147125 -0.0351398 0.0042003" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/wifi_antenna_right.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/wifi_antenna_right.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="intelligent_controller"/>
       </visual>
@@ -58,3 +58,4 @@
     </material>
   </xacro:macro>
 </robot>
+

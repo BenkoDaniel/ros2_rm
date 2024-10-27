@@ -13,7 +13,7 @@
       <visual name="camera">
         <origin xyz="7.15e-05 0 -0.0004056" rpy="0 -1.7453293 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/camera.dae" scale="1.0 1.0 1.0000001"/>
+          <mesh filename="$(find robomaster_description)/meshes/camera.dae" scale="1.0 1.0 1.0000001"/>
         </geometry>
         <material name="metal"/>
       </visual>

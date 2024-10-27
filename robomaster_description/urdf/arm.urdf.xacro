@@ -12,21 +12,21 @@
       <visual name="arm_1">
         <origin xyz="0.0073108 0.0184816 0.0437162" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/arm_1.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/arm_1.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <visual name="arm_1_cylinder">
         <origin xyz="-0.0239031 0.0255713 -0.0368083" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/arm_1_cylinder.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/arm_1_cylinder.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <collision name="arm_1_collision">
         <origin xyz="0.0065116 0.0213649 0.0639448" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/arm_1_collision.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/arm_1_collision.dae" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>
@@ -43,7 +43,7 @@
       <visual name="arm_2">
         <origin xyz="0.0256122 -0.020134 -0.001308" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/arm_2.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/arm_2.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <!-- <material name="metal"/> -->
         <material name="Test">
@@ -53,21 +53,21 @@
       <visual name="arm_2_bar_1">
         <origin xyz="7.62e-05 0.0010863 -0.0002509" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/arm_2_bar_1.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/arm_2_bar_1.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <visual name="arm_2_bar_2">
         <origin xyz="-0.0423232 -0.0099192 0.0221971" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/arm_2_bar_2.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/arm_2_bar_2.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <collision name="arm_2_collision">
         <origin xyz="0.0222614 -0.0202749 -0.008504" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/arm_2_collision.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/arm_2_collision.dae" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>
@@ -89,28 +89,28 @@
       <visual name="arm_base">
         <origin xyz="-0.0008983 -0.0029745 -2.44e-05" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/arm_base.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/arm_base.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <visual name="left_servo">
         <origin xyz="-0.013507 0 -0.0060673" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/left_servo.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/left_servo.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <visual name="right_servo">
         <origin xyz="-0.013507 0 -0.0060673" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/right_servo.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/right_servo.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <collision name="arm_base_collision">
         <origin xyz="-0.002098 -0.0004909 0.0073523" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/arm_base_collision.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/arm_base_collision.dae" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>
@@ -127,14 +127,14 @@
       <visual name="endpoint_bracket">
         <origin xyz="0.0071657 -0.0245846 0.0008407" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/endpoint_bracket.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/endpoint_bracket.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <collision name="endpoint_bracket_collision">
         <origin xyz="0.0116468 -0.0288044 0.0041342" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/endpoint_bracket_collision.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/endpoint_bracket_collision.dae" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>
@@ -151,14 +151,14 @@
       <visual name="rod_1">
         <origin xyz="-0.0479737 0 0.0301898" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/rod_1.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/rod_1.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <collision name="rod_1_collision">
         <origin xyz="-0.0477809 0 0.0272644" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/rod_1_collision.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/rod_1_collision.dae" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>
@@ -180,14 +180,14 @@
       <visual name="rod_2">
         <origin xyz="-0.0012722 0 0.0561361" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/rod_2.dae" scale="1.0000004 1.0 0.9999998"/>
+          <mesh filename="($find robomaster_description)/meshes/rod_2.dae" scale="1.0000004 1.0 0.9999998"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <collision name="rod_2_collision">
         <origin xyz="0.0011528 0 0.0549123" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/rod_2_collision.dae" scale="1.0000004 1.0 0.9999998"/>
+          <mesh filename="($find robomaster_description)/meshes/rod_2_collision.dae" scale="1.0000004 1.0 0.9999998"/>
         </geometry>
       </collision>
     </link>
@@ -209,14 +209,14 @@
       <visual name="rod_3">
         <origin xyz="-0.0017304 0 0.0633558" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/rod_3.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/rod_3.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <collision name="rod_3_collision">
         <origin xyz="0.0004696 9.5e-06 0.0561803" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/rod_3_collision.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/rod_3_collision.dae" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>
@@ -230,14 +230,14 @@
       <visual name="rod">
         <origin xyz="-0.0261857 0.0022566 0.0121229" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/rod.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/rod.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <collision name="rod_collision">
         <origin xyz="-0.02432 0.0022871 0.0136485" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/rod_collision.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/rod_collision.dae" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>
@@ -262,14 +262,14 @@
       <visual name="triangle">
         <origin xyz="-0.0095953 0 0.0131247" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/triangle.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/triangle.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="metal"/>
       </visual>
       <collision name="triangle_collision">
         <origin xyz="-0.0091994 0 0.012377" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/triangle_collision.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="($find robomaster_description)/meshes/triangle_collision.dae" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>
@@ -402,6 +402,8 @@
       <mimic joint="${tf_prefix}arm_1_joint" multiplier="-1.0" offset="0.0"/>
     </joint>
 
-    </xacro:macro>
+  </xacro:macro>
 
-  </robot>
+</robot>
+
+

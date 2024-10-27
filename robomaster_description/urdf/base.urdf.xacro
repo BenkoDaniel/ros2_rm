@@ -18,56 +18,56 @@
       <visual name="armor">
         <origin xyz="-0.0064553 -0.078141 0.0292877" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/armor.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/armor.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="armor_plastic"/>
       </visual>
       <visual name="battery">
         <origin xyz="-0.130336 -0.0018702 0.0174177" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/battery.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/battery.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="dark_plastic"/>
       </visual>
       <visual name="battery_pin_left">
         <origin xyz="-0.1158907 0.066115 0.0525243" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/battery_pin_left.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/battery_pin_left.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="dark_plastic"/>
       </visual>
       <visual name="battery_pin_right">
         <origin xyz="-0.1158907 -0.0658844 0.0525243" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/battery_pin_right.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/battery_pin_right.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="dark_plastic"/>
       </visual>
       <visual name="chassis">
         <origin xyz="-0.0059039 0.0004154 0.0527955" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/chassis.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/chassis.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="chassis"/>
       </visual>
       <visual name="controller">
         <origin xyz="-0.1142288 -0.0006716 0.052675" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/controller.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/controller.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="dark_plastic"/>
       </visual>
       <visual name="controller_cover">
         <origin xyz="-0.0787757 -0.002522 0.0720827" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/controller_cover.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/controller_cover.dae" scale="1.0 1.0 1.0"/>
         </geometry>
         <material name="cover_plastic"/>
       </visual>
       <collision name="base_collision">
         <origin xyz="-0.0058789 -0.0001128 0.0294307" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/base_collision.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/base_collision.dae" scale="1.0 1.0 1.0"/>
         </geometry>
       </collision>
     </link>
@@ -127,3 +127,4 @@
 
   </xacro:macro>
 </robot>
+

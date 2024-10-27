@@ -22,7 +22,7 @@
       <visual name="${name}_wheel">
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://robomaster_description/meshes/wheel.dae" scale="1.0 ${direction} 1.0"/>
+          <mesh filename="$(find robomaster_description)/meshes/wheel.dae" scale="1.0 ${direction} 1.0"/>
         </geometry>
         <material name="wheel_plastic"/>
       </visual>
