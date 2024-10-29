@@ -256,7 +256,7 @@
         <geometry>
           <mesh filename="$(find robomaster_description)/meshes/speaker.dae" scale="1.0 1.0 1.0" />
         </geometry>
-        <material name="Material #32.001" />
+        <!-- <material name="Material #32.001" /> -->
       </visual>
       <collision name="speaker_collision">
         <origin xyz="-0.00408 -0.00356 -0.00071" rpy="0 0 0" />
