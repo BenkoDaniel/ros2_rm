@@ -19,6 +19,6 @@
     <arg name="world" value="$(var world)"/>
   </include>
 
-  <node name="spawn_entity" pkg="gazebo_ros" exec="spawn_entity.py" output="screen" args="-topic robot_description -entity robomaster -x 0 -y -0.75 -z 0 -R 0 -P 0 -Y 1.57"/>
+  <node name="spawn_entity" pkg="gazebo_ros" exec="spawn_entity.py" output="screen" args="-topic robot_description -entity robomaster -x 0 -y -0.4 -z 0 -R 0 -P 0 -Y 1.57"/>
 
 </launch>

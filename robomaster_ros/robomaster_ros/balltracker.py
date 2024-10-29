@@ -16,7 +16,7 @@ class BallTracker(Node):
         self.camera = None
         self.subscripiton = self.create_subscription(
             Image,
-            '/camera/image_color',
+            '/camera/image_raw',
             self.cb_camera,
             10)
 
@@ -61,7 +61,7 @@ class BallTracker(Node):
             x1, y1, x2, y2 = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
 
             if row['name'] == "sports ball":
-                if row['confidence'] > 0.50:
+                if row['confidence'] > 0.00:
                     cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
                     center_x = int((x1 + x2) / 2)
                     center_y = int((y1 + y2) / 2)

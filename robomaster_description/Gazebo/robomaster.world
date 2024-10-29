@@ -2,16 +2,16 @@
 <sdf version="1.4">
   <world name="robomaster_sim">
     <include>
-        <uri>model://ground_plane</uri>
+      <uri>model://ground_plane</uri>
     </include>
     <include>
-        <uri>model://walls</uri>
+      <uri>model://walls</uri>
     </include>
     <include>
-        <uri>model://ball</uri>
+      <uri>model://ball</uri>
     </include>
     <include>
-        <uri>model://sun</uri>
+      <uri>model://sun</uri>
     </include>
   </world>
 </sdf>
