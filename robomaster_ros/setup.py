@@ -33,7 +33,8 @@ setup(
             'discover = robomaster_ros.discover:main',
             'control = robomaster_ros.control:main',
             'balltracker = robomaster_ros.balltracker:main',
-            'ballfollower = robomaster_ros.ballfollower:main'
+            'ballfollower = robomaster_ros.ballfollower:main',
+            'simballtracker = robomaster_ros.simballtracker:main'
         ],
     },
 )
