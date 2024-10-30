@@ -3,7 +3,9 @@ from rclpy.node import Node
 import cv2
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
-from geometry_msgs.msg import Point, Image
+from geometry_msgs.msg import Point
+from sensor_msgs.msg import Image
+
 
 class BallTrackerSim(Node):
 
@@ -47,10 +49,10 @@ class BallTrackerSim(Node):
 
 
     def find_ball(self, image):
-        hsv = self.bridge.imgmsg_to_cv2(image, cv2.COLOR_RGB2HSV)
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-        lower_green = np.array([0, 50, 0])
-        upper_green = np.array([80, 255, 255])
+        lower_green = np.array([45, 150, 100])
+        upper_green = np.array([75, 255, 255])
 
         mask = cv2.inRange(hsv, lower_green, upper_green)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -71,7 +73,7 @@ class BallTrackerSim(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    bt = BallTracker()
+    bt = BallTrackerSim()
     try:
         rclpy.spin(bt)
     finally:
