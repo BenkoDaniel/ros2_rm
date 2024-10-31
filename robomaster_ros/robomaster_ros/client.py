@@ -19,6 +19,7 @@ import robomaster.client
 
 from robomaster_ros.modules import modules
 from robomaster_ros.ftp import FtpConnection
+#from robomaster_ros.ftp import FakeFtpConnection
 
 import rclpy
 import rclpy.node
@@ -94,6 +95,7 @@ class RoboMasterROS(rclpy.node.Node):  # type: ignore
         super(RoboMasterROS, self).__init__("robomaster_ros", start_parameter_services=True)
         # robomaster.logger.set_level(logging.ERROR)
         lib_log_level : str = self.declare_parameter("lib_log_level", "ERROR").value.upper()
+        self.use_sim = self.declare_parameter("use_sim", False).value
         robomaster.logger.setLevel(lib_log_level)
         conn_type: str = self.declare_parameter("conn_type", "sta").value[:]
         self.reconnect: bool = self.declare_parameter("reconnect", True).value
@@ -111,19 +113,28 @@ class RoboMasterROS(rclpy.node.Node):  # type: ignore
             self.get_logger().info("Waiting for a robot")
             wait_for_robot(sn)
             self.get_logger().info("Found a robot")
+
+
+
         robomaster.conn.FtpConnection = FtpConnection
         # robomaster.conn.FtpConnection = FakeFtpConnection
         self.ep_robot = robomaster.robot.Robot()
         self.disconnection = rclpy.task.Future(executor=executor or rclpy.get_global_executor())
         # For now, to handle simulations without FTP
-        self.get_logger().info(f"Try to connect via {conn_type} to robot with sn {sn}")
-        try:
-            self.ep_robot.initialize(conn_type=conn_type, sn=sn)
-        except (AttributeError, TypeError):
-            self.get_logger().error("Could not connect")
-            self.disconnection.set_result(False)
-            return
-        self.get_logger().info("Connected")
+
+
+        if not self.use_sim:
+            self.get_logger().info(f"Try to connect via {conn_type} to robot with sn {sn}")
+            try:
+                self.ep_robot.initialize(conn_type=conn_type, sn=sn)
+            except (AttributeError, TypeError):
+                self.get_logger().error("Could not connect")
+                self.disconnection.set_result(False)
+                return
+            self.get_logger().info("Connected")
+        else:
+            self.get_logger().info("Running in simulation mode")
+
         qos = rclpy.qos.QoSProfile(
             depth=1,
             history=rclpy.qos.QoSHistoryPolicy.KEEP_LAST,
