@@ -279,6 +279,9 @@
       <axis xyz="0 1.0 0"/>
       <!-- [-25, +30] degrees -->
       <limit effort="0" velocity="0" lower="-0.5236" upper="0.4363"/>
+      <ros2_control>
+        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      </ros2_control>
     </joint>
 
     <joint name="${tf_prefix}gimbal_left_led_joint" type="fixed">
@@ -300,6 +303,9 @@
       <axis xyz="0 0 1.0" />
       <!-- [-250, +250] degrees -->
       <limit effort="0" velocity="0" lower="-4.363" upper="4.363"/>
+      <ros2_control>
+        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      </ros2_control>
     </joint>
 
     <joint name="${tf_prefix}speaker_joint" type="fixed">
