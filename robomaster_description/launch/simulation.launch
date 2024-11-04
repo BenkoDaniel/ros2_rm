@@ -6,18 +6,15 @@
   <let name="js_suffix" value="" unless="$(var joint_state_gui)"/>
   <let name="js_suffix" value="_gui" if="$(var joint_state_gui)"/>
 
-  <include file="$(find-pkg-share robomaster_description)/launch/model.launch.py"/>
-
-  <node name="joint_state_publisher" exec="joint_state_publisher$(var js_suffix)"
-    pkg="joint_state_publisher$(var js_suffix)"  output="screen" args="--ros-args --log-level warn">
-    <param name="source_list" value="joint_states_p" value-sep=","/>
-    <param name="rate" value="$(var joint_state_rate)"/>
-  </node>
-
-
   <include file="$(find-pkg-share gazebo_ros)/launch/gazebo.launch.py">
     <arg name="world" value="$(var world)"/>
   </include>
+
+  <include file="$(find-pkg-share robomaster_description)/launch/model.launch.py"/>
+
+
+
+
 
   <node name="spawn_entity" pkg="gazebo_ros" exec="spawn_entity.py" output="screen" args="-topic robot_description -entity robomaster -x 0 -y -0.4 -z 0 -R 0 -P 0 -Y 1.57"/>
 

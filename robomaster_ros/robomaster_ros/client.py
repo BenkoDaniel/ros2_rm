@@ -109,10 +109,12 @@ class RoboMasterROS(rclpy.node.Node):  # type: ignore
         else:
             sn = None
         self.connected = False
-        if conn_type == 'sta':
+        if not self.use_sim and conn_type == 'sta':
             self.get_logger().info("Waiting for a robot")
             wait_for_robot(sn)
             self.get_logger().info("Found a robot")
+        else:
+            self.get_logger().info("Running in simulation mode, skipping IP scan")
 
 
 
@@ -124,16 +126,18 @@ class RoboMasterROS(rclpy.node.Node):  # type: ignore
 
 
         if not self.use_sim:
+            #self.disconnection = rclpy.task.Future(executor=executor or rclpy.get_global_executor())
             self.get_logger().info(f"Try to connect via {conn_type} to robot with sn {sn}")
             try:
                 self.ep_robot.initialize(conn_type=conn_type, sn=sn)
             except (AttributeError, TypeError):
                 self.get_logger().error("Could not connect")
-                self.disconnection.set_result(False)
+                #self.disconnection.set_result(False)
                 return
             self.get_logger().info("Connected")
         else:
             self.get_logger().info("Running in simulation mode")
+            self.ep_robot.initialize(use_sim=True)
 
         qos = rclpy.qos.QoSProfile(
             depth=1,
@@ -143,7 +147,7 @@ class RoboMasterROS(rclpy.node.Node):  # type: ignore
         self.connected = True
         self._tf_name = self.declare_parameter('tf_prefix', '').value
         self.initialized = True
-        self.heartbeat_check_timer = self.create_timer(5, self.heartbeat_check)
+        #self.heartbeat_check_timer = self.create_timer(5, self.heartbeat_check)
         self.heartbeat_handler = robomaster.client.MsgHandler(
             proto_data=robomaster.protocol.ProtoSdkHeartBeat(),
             ack_cb=lambda _, msg: self.got_heart_beat(msg))

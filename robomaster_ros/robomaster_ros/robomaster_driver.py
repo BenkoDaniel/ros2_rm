@@ -41,11 +41,16 @@ def main(args: Any = None) -> None:
         except KeyboardInterrupt:
             break
         should_reconnect = node.reconnect
-        if not node.disconnection.done():
+        #if not node.disconnection.done():
+        if True:
             try:
-                while rclpy.ok() and not node.disconnection.done():
+                #while rclpy.ok() and not node.disconnection.done():
+                while rclpy.ok():
                     rclpy.spin_until_future_complete(
-                        node, node.disconnection, executor=executor, timeout_sec=1.0)
+                        node,
+                        node.disconnection,
+                        executor=executor,
+                        timeout_sec=1.0)
             except KeyboardInterrupt:
                 should_reconnect = False
                 break
