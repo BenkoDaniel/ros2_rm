@@ -1,0 +1,18 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 50
+    use_sim_time: true
+
+    gimbal_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+gimbal_controller:
+  ros__parameters:
+    publish_rate: 50.0
+    base_frame_id: base_link
+    pitch_joint_name: ['blaster_joint']
+    jaw_joint_name: ['gimbal_joint']
+    use_stamped_vel: false

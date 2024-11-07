@@ -43,9 +43,6 @@
       <child link="${tf_prefix}${name}_wheel_link"/>
       <axis xyz="0 1.0 0"/>
       <limit effort="0" velocity="0"/>
-      <ros2_control>
-        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
-      </ros2_control>
     </joint>
 
   </xacro:macro>

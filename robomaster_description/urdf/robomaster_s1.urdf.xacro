@@ -10,6 +10,8 @@
     <xacro:property name="tf_prefix" value=""/>
   </xacro:if>
 
+  <xacro:include filename="control.urdf.xacro"/>
+
 
   <xacro:include filename="base.urdf.xacro"/>
   <xacro:include filename="gimbal.urdf.xacro"/>
@@ -27,35 +29,6 @@
   <xacro:add_tof index="2" tf_prefix="${tf_prefix}"/>
   <xacro:add_tof index="3" tf_prefix="${tf_prefix}"/>
 
-    <gazebo>
-      <plugin name="gazebo_ros_joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
-        <update_rate>20</update_rate>
-        <joint_name>front_left_wheel_joint</joint_name>
-        <joint_name>front_right_wheel_joint</joint_name>
-        <joint_name>rear_left_wheel_joint</joint_name>
-        <joint_name>rear_right_wheel_joint</joint_name>
-        <joint_name>blaster_joint</joint_name>
-        <joint_name>gimbal_joint</joint_name>
-        <ros>
-          <remapping>joint_states:=joint_states_p</remapping>
-        </ros>
-      </plugin>
-    </gazebo>
-
-    <gazebo>
-      <plugin name="gazebo_ros_joint_pose_trajectory" filename="libgazebo_ros_joint_pose_trajectory.so">
-        <update_rate>20 </update_rate>
-      </plugin>
-    </gazebo>
-  <!--
-  <gazebo>
-    <plugin name="ground_truth" filename="libgazebo_ros_p3d.so">
-      <frameName>map</frameName>
-      <bodyName>base_link</bodyName>
-      <topicName>/odom</topicName>
-      <updateRate>30.0</updateRate>
-    </plugin>
-  </gazebo> -->
 
   <gazebo reference="camera_link">
     <pose>0 0 0 1.57 0 0</pose>
