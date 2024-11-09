@@ -34,7 +34,8 @@ setup(
             'control = robomaster_ros.control:main',
             'balltracker = robomaster_ros.balltracker:main',
             'ballfollower = robomaster_ros.ballfollower:main',
-            'simballtracker = robomaster_ros.simballtracker:main'
+            'simballtracker = robomaster_ros.simballtracker:main',
+            'gimbal_command_converter = robomaster_ros.gimbal_command_converter:main'
         ],
     },
 )
