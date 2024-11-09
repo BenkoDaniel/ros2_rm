@@ -300,9 +300,6 @@
       <axis xyz="0 0 1.0" />
       <!-- [-250, +250] degrees -->
       <limit effort="0" velocity="0" lower="-4.363" upper="4.363"/>
-      <ros2_control>
-
-      </ros2_control>
     </joint>
 
     <joint name="${tf_prefix}speaker_joint" type="fixed">

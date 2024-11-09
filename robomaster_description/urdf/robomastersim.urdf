@@ -2,7 +2,7 @@
 <robot name="robomaster_s1">
   <ros2_control name="GazeboSimSystem" type="system">
     <hardware>
-      <plugin>fake_components/GenericSystem</plugin>
+      <plugin>mock_components/GenericSystem</plugin>
     </hardware>
     <joint name="gimbal_joint">
       <command_interface name="velocity">
@@ -699,6 +699,9 @@
     <child link="blaster_link"/>
     <axis xyz="0 1.0 0"/>
     <limit effort="0" lower="-0.5236" upper="0.4363" velocity="0"/>
+    <ros2_control>
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </ros2_control>
   </joint>
   <joint name="gimbal_left_led_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0.00032 0.07079 0.08761"/>
@@ -717,8 +720,8 @@
     <axis xyz="0 0 1.0"/>
     <limit effort="0" lower="-4.363" upper="4.363" velocity="0"/>
     <ros2_control>
-
-      </ros2_control>
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </ros2_control>
   </joint>
   <joint name="speaker_joint" type="fixed">
     <origin rpy="0 0 0" xyz="-0.01301 0.00691 -0.06117"/>
