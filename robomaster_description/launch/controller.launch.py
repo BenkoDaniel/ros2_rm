@@ -43,6 +43,11 @@ def generate_launch_description():
         arguments=["gim_controller"],
     )
 
+    command_converter = Node(
+        package="robomaster_ros",
+        executable="gimbal_command_converter"
+    )
+
 
     delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
@@ -56,4 +61,5 @@ def generate_launch_description():
         controller_manager,
         joint_state_broadcaster_spawner,
         delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
+        command_converter
     ])
