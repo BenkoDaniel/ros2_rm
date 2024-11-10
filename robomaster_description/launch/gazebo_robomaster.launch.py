@@ -5,7 +5,7 @@ import launch_ros
 
 def generate_launch_description():
     pkg_src = launch_ros.substitutions.FindPackageShare(package='robomaster_ros').find('robomaster_ros')
-    sim = os.path.join(pkg_src, 'gazebo/simulation.sdf')
+    sim = os.path.join(pkg_src, 'gazebo/meshtester.sdf')
 
     return LaunchDescription([
         ExecuteProcess(
