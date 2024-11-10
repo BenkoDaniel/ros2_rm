@@ -246,7 +246,7 @@
   </node>
 
 
-  <include file="$(find-pkg-share robomaster_description)/launch/simulation.launch" if="$(var with_model_description)">
+  <include file="$(find-pkg-share robomaster_ros)/launch/simulation.launch" if="$(var with_model_description)">
     <arg name="name" value="$(var name)"/>
     <arg name="model" value="$(var model)"/>
     <arg name="tof_0" value="$(var tof_0)"/>
