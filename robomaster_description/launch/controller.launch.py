@@ -42,11 +42,17 @@ def generate_launch_description():
         executable="spawner",
         arguments=["gim_controller"],
     )
+    diff_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["diff_controller"],
+    )
 
     command_converter = Node(
         package="robomaster_ros",
         executable="gimbal_command_converter"
     )
+
 
 
     delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
@@ -55,11 +61,18 @@ def generate_launch_description():
             on_exit=[gimbal_controller_spawner]
         )
     )
+    delay_diff_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[diff_controller_spawner]
+        )
+    )
 
 
     return LaunchDescription([
         controller_manager,
         joint_state_broadcaster_spawner,
         delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
+        delay_diff_controller_spawner_after_joint_state_broadcaster_spawner,
         command_converter
     ])
