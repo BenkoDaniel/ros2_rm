@@ -1,22 +1,16 @@
 <?xml version="1.0" ?>
-<robot name="robomaster_s1">
+<robot name="robomaster">
   <ros2_control name="GazeboSimSystem" type="system">
     <hardware>
       <plugin>mock_components/GenericSystem</plugin>
     </hardware>
     <joint name="gimbal_joint">
-      <command_interface name="velocity">
-        <param name="min">-3</param>
-        <param name="max">3</param>
-      </command_interface>
+      <command_interface name="velocity"/>
       <state_interface name="position"/>
       <state_interface name="velocity"/>
     </joint>
     <joint name="blaster_joint">
-      <command_interface name="velocity">
-        <param name="min">-3</param>
-        <param name="max">3</param>
-      </command_interface>
+      <command_interface name="velocity"/>
       <state_interface name="position"/>
       <state_interface name="velocity"/>
     </joint>
