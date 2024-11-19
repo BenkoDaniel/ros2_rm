@@ -16,7 +16,7 @@ class GimbalCommandToStd(Node):
 
     def command_callback(self, msg):
         std_command = Float64MultiArray()
-        std_command.data = [msg.yaw_speed, msg.pitch_speed]
+        std_command.data = [-msg.yaw_speed, msg.pitch_speed]
         self.publisher.publish(std_command)
 
 def main(args=None):
