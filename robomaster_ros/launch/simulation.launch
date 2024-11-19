@@ -10,5 +10,6 @@
     <arg name="world" value="$(var world)"/>
     <arg name="use_sim_time" value="true"/>
   </include>
+
   <include file="$(find-pkg-share robomaster_description)/launch/controller.launch.py"/>
 </launch>
