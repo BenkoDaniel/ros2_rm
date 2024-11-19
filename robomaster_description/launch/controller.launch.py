@@ -48,13 +48,6 @@ def generate_launch_description():
         parameters=[robot_description]
     )
 
-    #controller_manager = Node(
-    #    package="controller_manager",
-    #    executable="ros2_control_node",
-    #    parameters=[robot_description, robot_controllers],
-    #    output="both",
-    #)
-
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -83,7 +76,6 @@ def generate_launch_description():
     return LaunchDescription([
         spawn_entity_node,
         robot_state_publisher,
-        #controller_manager,
         joint_state_broadcaster_spawner,
         delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
         command_converter
