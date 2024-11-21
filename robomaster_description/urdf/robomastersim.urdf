@@ -17,10 +17,12 @@
   </ros2_control>
   <gazebo>
     <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <ros>
+        <namespace>robot1</namespace>
+      </ros>
       <parameters>/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/config/simcontroller.yaml</parameters>
+      <robot_param_node>/robot1/robot_state_publisher</robot_param_node>
     </plugin>
-  </gazebo>
-  <gazebo>
     <plugin name="robomaster_steering" filename="libgazebo_ros_planar_move.so">
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
@@ -28,15 +30,42 @@
       <odometryRate>50.0</odometryRate>
       <robotBaseFrame>base_link</robotBaseFrame>
       <publishTF>false</publishTF>
-    </plugin>
-    <plugin name="robomaster_joint_state" filename="libgazebo_ros_joint_state_publisher.so">
       <ros>
-        <remapping>~/out:=joint_states</remapping>
+          <namespace>robot1</namespace>
       </ros>
-      <update_rate>30</update_rate>
-      <joint_name>front_left_wheel_joint</joint_name>
-      <joint_name>front_right_wheel_joint</joint_name>
     </plugin>
+  </gazebo>
+  <gazebo reference="camera_link">
+    <pose>0 0 0 1.57 0 0</pose>
+    <sensor name="camera" type="camera">
+      <update_rate>20</update_rate>
+      <visualize>true</visualize>
+      <camera name="cam">
+        <horizontal_fov>1.3962634</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>360</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>100</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+      <plugin filename="libgazebo_ros_camera.so" name="camera_controller">
+        <frame_name>camera_optical_link</frame_name>
+        <min_depth>0.1</min_depth>
+        <max_depth>100</max_depth>
+        <ros>
+          <namespace>robot1</namespace>
+        </ros>
+      </plugin>
+    </sensor>
   </gazebo>
   <link name="base_link"/>
   <link name="chassis_base_link">
@@ -833,33 +862,4 @@
   <material name="intelligent_controller">
     <color rgba="0.8 0.8 0.8 1.0"/>
   </material>
-  <gazebo reference="camera_link">
-    <pose>0 0 0 1.57 0 0</pose>
-    <sensor name="camera" type="camera">
-      <update_rate>20</update_rate>
-      <visualize>true</visualize>
-      <camera name="cam">
-        <horizontal_fov>1.3962634</horizontal_fov>
-        <image>
-          <width>640</width>
-          <height>360</height>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.02</near>
-          <far>100</far>
-        </clip>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.007</stddev>
-        </noise>
-      </camera>
-      <plugin filename="libgazebo_ros_camera.so" name="camera_controller">
-        <frame_name>camera_optical_link</frame_name>
-        <min_depth>0.1</min_depth>
-        <max_depth>100</max_depth>
-      </plugin>
-    </sensor>
-  </gazebo>
 </robot>

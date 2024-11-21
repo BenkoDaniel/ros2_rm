@@ -37,22 +37,26 @@ def generate_launch_description():
         output="screen"
     )
 
+
     robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[robot_description]
+        parameters=[robot_description],
+        remappings=[("/robot_description", '/robot1/robot_description'),
+                    ("/joint_states", '/robot1/joint_states')],
     )
 
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster"]
+        arguments=["joint_state_broadcaster", "--controller-manager", "controller_manager"]
     )
     gimbal_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["gim_controller"],
+        namespace="robot1",
+        arguments=["gim_controller", "--controller-manager", "controller_manager"],
     )
     command_converter = Node(
         package="robomaster_ros",
