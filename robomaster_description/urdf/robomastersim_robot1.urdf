@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="robomaster">
+<robot name="robomaster_1">
   <ros2_control name="GazeboSimSystem" type="system">
     <hardware>
       <plugin>gazebo_ros2_control/GazeboSystem</plugin>
@@ -20,7 +20,7 @@
       <ros>
         <namespace>robot1</namespace>
       </ros>
-      <parameters>/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/config/simcontroller.yaml</parameters>
+      <parameters>/home/benko/ros2_rm/src/robomaster_ros/robomaster_description/config/simcontroller_robot1.yaml</parameters>
       <robot_param_node>/robot1/robot_state_publisher</robot_param_node>
     </plugin>
     <plugin name="robomaster_steering" filename="libgazebo_ros_planar_move.so">
