@@ -10,23 +10,27 @@ import os
 def generate_launch_description():
 
     pkg_src = FindPackageShare(package='robomaster_description').find('robomaster_description')
-    urdf_path = os.path.join(pkg_src, 'urdf/robomastersim.urdf')
+    robot1_urdf_path = os.path.join(pkg_src, 'urdf/robomastersim_robot1.urdf')
+    robot2_urdf_path = os.path.join(pkg_src, 'urdf/robomastersim_robot2.urdf')
 
-    with open(urdf_path, 'r') as urdf_file:
-        urdf_content = urdf_file.read()
+    with open(robot1_urdf_path, 'r') as urdf_file:
+        robot1_urdf_content = urdf_file.read()
 
-    robot_description = Parameter("robot_description", value=urdf_content)
+    with open(robot1_urdf_path, 'r') as urdf_file:
+        robot2_urdf_content = urdf_file.read()
+
+    robot1_robot_description = Parameter("robot_description", value=robot1_urdf_content)
+    robot2_robot_description = Parameter("robot_description", value=robot2_urdf_content)
     robot1_namespace = "robot1"
     robot2_namespace = "robot2"
 
 #region robot1
-    spawn_entity_node = Node(
+    robot1_spawn_entity_node = Node(
         package="gazebo_ros",
         executable="spawn_entity.py",
-        namespace=robot1_namespace,
         arguments=[
             '-entity', 'robomaster_1',
-            '-file', urdf_path,
+            '-file', robot1_urdf_path,
             '-x', '0',
             '-y', '-0.5',
             '-z', '0',
@@ -38,87 +42,86 @@ def generate_launch_description():
     )
 
 
-    robot_state_publisher = Node(
+    robot1_robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[robot_description],
+        parameters=[robot1_robot_description],
         remappings=[("/robot_description", '/robot1/robot_description'),
                     ("/joint_states", '/robot1/joint_states')],
     )
 
-    joint_state_broadcaster_spawner = Node(
+    robot1_joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["joint_state_broadcaster", "--controller-manager", "controller_manager"]
     )
-    gimbal_controller_spawner = Node(
+    robot1_gimbal_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         namespace="robot1",
         arguments=["gim_controller", "--controller-manager", "controller_manager"],
     )
-    command_converter = Node(
+    robot1_command_converter = Node(
         package="robomaster_ros",
         executable="gimbal_command_converter",
     )
 #endregion
 #region robot2
-    spawn_entity_node_2 = Node(
+    robot2_spawn_entity_node = Node(
         package="gazebo_ros",
         executable="spawn_entity.py",
-        namespace=robot2_namespace,
         arguments=[
             '-entity', 'robomaster_2',
-            '-file', urdf_path,
+            '-file', robot2_urdf_path,
             '-x', '0',
-            '-y', '-0.5',
+            '-y', '0.5',
             '-z', '0',
             '-R', '0',
             '-P', '0',
-            '-Y', '1.57',
+            '-Y', '-1.57',
         ],
         output="screen"
     )
 
-    robot_state_publisher_2 = Node(
+
+    robot2_robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
-        namespace=robot2_namespace,
         output="screen",
-        parameters=[robot_description]
+        parameters=[robot2_robot_description],
+        remappings=[("/robot_description", '/robot2/robot_description'),
+                    ("/joint_states", '/robot2/joint_states')],
     )
 
-    joint_state_broadcaster_spawner_2 = Node(
+    robot2_joint_state_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster", "--controller-manager", "controller_manager"]
+    )
+    robot2_gimbal_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         namespace=robot2_namespace,
-        arguments=["joint_state_broadcaster"]
+        arguments=["gim_controller", "--controller-manager", "controller_manager"],
     )
-    gimbal_controller_spawner_2 = Node(
-        package="controller_manager",
-        executable="spawner",
-        namespace=robot2_namespace,
-        arguments=["gim_controller"],
-    )
-    command_converter_2 = Node(
+    robot2_command_converter = Node(
         package="robomaster_ros",
         executable="gimbal_command_converter",
-        namespace=robot2_namespace,
     )
 #endregion
 
 
-    delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+    robot1_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[gimbal_controller_spawner]
+            target_action=robot1_joint_state_broadcaster_spawner,
+            on_exit=[robot1_gimbal_controller_spawner]
         )
     )
-    delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner_2 = RegisterEventHandler(
+    robot2_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner_2,
-            on_exit=[gimbal_controller_spawner_2]
+            target_action=robot2_joint_state_broadcaster_spawner,
+            on_exit=[robot2_gimbal_controller_spawner]
         )
     )
 
@@ -131,10 +134,18 @@ def generate_launch_description():
         #command_converter,
         GroupAction([
             PushRosNamespace(robot1_namespace),
-            spawn_entity_node,
-            robot_state_publisher,
-            joint_state_broadcaster_spawner,
-            delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
-            command_converter
+            robot1_spawn_entity_node,
+            robot1_robot_state_publisher,
+            robot1_joint_state_broadcaster_spawner,
+            robot1_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
+            robot1_command_converter
+        ]),
+        GroupAction([
+            PushRosNamespace(robot2_namespace),
+            robot2_spawn_entity_node,
+            robot2_robot_state_publisher,
+            robot2_joint_state_broadcaster_spawner,
+            robot2_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
+            robot2_command_converter
         ]),
     ])
