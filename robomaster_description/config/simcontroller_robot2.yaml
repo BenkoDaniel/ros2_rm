@@ -1,0 +1,22 @@
+robot2/controller_manager:
+  ros__parameters:
+    update_rate: 10
+    use_sim_time: true
+
+    gim_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+robot2/gim_controller:
+  ros__parameters:
+    joints:
+      - gimbal_joint
+      - blaster_joint
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 10
