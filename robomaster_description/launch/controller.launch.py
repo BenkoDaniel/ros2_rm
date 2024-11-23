@@ -41,7 +41,6 @@ def generate_launch_description():
         output="screen"
     )
 
-
     robot1_robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
@@ -84,7 +83,6 @@ def generate_launch_description():
         output="screen"
     )
 
-
     robot2_robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
@@ -111,7 +109,6 @@ def generate_launch_description():
     )
 #endregion
 
-
     robot1_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=robot1_joint_state_broadcaster_spawner,
@@ -125,13 +122,7 @@ def generate_launch_description():
         )
     )
 
-
     return LaunchDescription([
-        #spawn_entity_node,
-        #robot_state_publisher,
-        #joint_state_broadcaster_spawner,
-        #delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
-        #command_converter,
         GroupAction([
             PushRosNamespace(robot1_namespace),
             robot1_spawn_entity_node,

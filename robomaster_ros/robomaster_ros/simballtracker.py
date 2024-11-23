@@ -15,7 +15,7 @@ class BallTrackerSim(Node):
         self.camera = None
         self.subscripiton = self.create_subscription(
             Image,
-            '/camera/image_raw',
+            'robot1/camera2/image_raw',
             self.cb_camera,
             10)
 
