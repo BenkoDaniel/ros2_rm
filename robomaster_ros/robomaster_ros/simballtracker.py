@@ -11,11 +11,16 @@ class BallTrackerSim(Node):
 
     def __init__(self):
         super().__init__('Ball_tracker_sim')
+
+        self.declare_parameter('camera_number', 'camera1')
+
+        cam_topic_name = self.get_parameter('camera_number').get_parameter_value().string_value + "/image_raw"
+
         self.bridge = CvBridge()
         self.camera = None
         self.subscripiton = self.create_subscription(
             Image,
-            'robot1/camera2/image_raw',
+            cam_topic_name,
             self.cb_camera,
             10)
 

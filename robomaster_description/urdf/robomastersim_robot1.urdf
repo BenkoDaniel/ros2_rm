@@ -57,7 +57,7 @@
           <stddev>0.007</stddev>
         </noise>
       </camera>
-      <plugin filename="libgazebo_ros_camera.so" name="camera_controller">
+      <plugin filename="libgazebo_ros_camera.so" name="camera_controller1">
         <frame_name>robot1/camera_optical_link</frame_name>
         <min_depth>0.1</min_depth>
         <max_depth>100</max_depth>
