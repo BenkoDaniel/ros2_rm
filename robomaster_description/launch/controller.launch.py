@@ -140,12 +140,20 @@ def generate_launch_description():
             robot1_command_converter,
             robot1_simballtracker
         ]),
-        GroupAction([
-            PushRosNamespace(robot2_namespace),
-            robot2_spawn_entity_node,
-            robot2_robot_state_publisher,
-            robot2_joint_state_broadcaster_spawner,
-            robot2_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
-            robot2_command_converter
-        ]),
+
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=robot1_joint_state_broadcaster_spawner,
+                on_exit=[
+                    GroupAction([
+                        PushRosNamespace(robot2_namespace),
+                        robot2_spawn_entity_node,
+                        robot2_robot_state_publisher,
+                        robot2_joint_state_broadcaster_spawner,
+                        robot2_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
+                        robot2_command_converter
+                    ])
+                ]
+            )
+        ),
     ])

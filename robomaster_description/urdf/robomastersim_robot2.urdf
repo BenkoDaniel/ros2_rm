@@ -57,12 +57,12 @@
           <stddev>0.007</stddev>
         </noise>
       </camera>
-      <plugin filename="libgazebo_ros_camera.so" name="camera_controller2">
+      <plugin filename="libgazebo_ros_camera.so" name="camera2">
         <frame_name>robot2/camera_optical_link</frame_name>
         <min_depth>0.1</min_depth>
         <max_depth>100</max_depth>
         <ros>
-          <namespace>robot2</namespace>
+          <namespace>/robot2</namespace>
         </ros>
       </plugin>
     </sensor>
