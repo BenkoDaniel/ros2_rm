@@ -71,6 +71,10 @@ def generate_launch_description():
         executable="simballtracker",
         parameters=[{'camera_number': 'camera1'}]
     )
+    robot1_simballfollower = Node(
+        package="robomaster_ros",
+        executable="ballfollower",
+    )
 
 #endregion
 #region robot2
@@ -138,7 +142,8 @@ def generate_launch_description():
             robot1_joint_state_broadcaster_spawner,
             robot1_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
             robot1_command_converter,
-            robot1_simballtracker
+            robot1_simballtracker,
+            robot1_simballfollower
         ]),
 
         RegisterEventHandler(

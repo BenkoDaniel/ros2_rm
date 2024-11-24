@@ -8,11 +8,11 @@ class GimbalCommandToStd(Node):
         super().__init__('gimbal_command_converter')
         self.subscription = self.create_subscription(
             GimbalCommand,
-            '/cmd_gimbal',
+            'cmd_gimbal',
             self.command_callback,
             10
         )
-        self.publisher = self.create_publisher(Float64MultiArray, '/gim_controller/commands', 10)
+        self.publisher = self.create_publisher(Float64MultiArray, 'gim_controller/commands', 10)
 
     def command_callback(self, msg):
         std_command = Float64MultiArray()

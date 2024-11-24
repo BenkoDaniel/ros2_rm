@@ -24,7 +24,7 @@ class BallTrackerSim(Node):
             self.cb_camera,
             10)
 
-        self.ballpub = self.create_publisher(Point, "/detected_ball", 1)
+        self.ballpub = self.create_publisher(Point, "detected_ball", 1)
 
     def cb_camera(self, msg):
         try:

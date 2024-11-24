@@ -7,13 +7,13 @@ import time
 
 class BallFollower(Node):
     def __init__(self):
-        super().__init__('balltracker')
+        super().__init__('ball_follower')
         self.subscription = self.create_subscription(
             Point,
-            '/detected_ball',
+            "detected_ball",
             self.cb_detectedball,
             10)
-        self.publisher_ = self.create_publisher(GimbalCommand, '/cmd_gimbal', 10)
+        self.publisher_ = self.create_publisher(GimbalCommand, "cmd_gimbal", 10)
 
         self.rcv_timeout_secs = 10
         timer_period = 0.1
