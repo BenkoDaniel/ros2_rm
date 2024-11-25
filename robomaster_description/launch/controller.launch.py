@@ -13,11 +13,11 @@ def generate_launch_description():
     robot1_urdf_path = os.path.join(pkg_src, 'urdf/robomastersim_robot1.urdf')
     robot2_urdf_path = os.path.join(pkg_src, 'urdf/robomastersim_robot2.urdf')
 
-    with open(robot1_urdf_path, 'r') as urdf_file:
-        robot1_urdf_content = urdf_file.read()
+    with open(robot1_urdf_path, 'r') as urdf_file1:
+        robot1_urdf_content = urdf_file1.read()
 
-    with open(robot1_urdf_path, 'r') as urdf_file:
-        robot2_urdf_content = urdf_file.read()
+    with open(robot2_urdf_path, 'r') as urdf_file2:
+        robot2_urdf_content = urdf_file2.read()
 
     robot1_robot_description = Parameter("robot_description", value=robot1_urdf_content)
     robot2_robot_description = Parameter("robot_description", value=robot2_urdf_content)
@@ -58,7 +58,7 @@ def generate_launch_description():
     robot1_gimbal_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        namespace="robot1",
+        namespace=robot1_namespace,
         arguments=["gim_controller", "--controller-manager", "controller_manager"],
     )
     robot1_command_converter = Node(
@@ -151,13 +151,13 @@ def generate_launch_description():
             robot1_joint_state_broadcaster_spawner,
             robot1_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
             robot1_command_converter,
-            robot1_simballtracker,
-            robot1_simballfollower
+            #robot1_simballtracker,
+            #robot1_simballfollower
         ]),
 
         RegisterEventHandler(
             OnProcessExit(
-                target_action=robot1_joint_state_broadcaster_spawner,
+                target_action=robot1_gimbal_controller_spawner,
                 on_exit=[
                     GroupAction([
                         PushRosNamespace(robot2_namespace),
@@ -166,8 +166,8 @@ def generate_launch_description():
                         robot2_joint_state_broadcaster_spawner,
                         robot2_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
                         robot2_command_converter,
-                        robot2_simballtracker,
-                        robot2_simballfollower
+                        #robot2_simballtracker,
+                        #robot2_simballfollower
                     ])
                 ]
             )

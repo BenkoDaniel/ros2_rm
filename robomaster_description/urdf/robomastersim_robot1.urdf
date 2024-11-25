@@ -23,13 +23,22 @@
       <parameters>/home/benko/ros2_rm/src/robomaster_ros/robomaster_description/config/simcontroller_robot1.yaml</parameters>
       <robot_param_node>/robot1/robot_state_publisher</robot_param_node>
     </plugin>
-    <plugin name="robomaster_steering" filename="libgazebo_ros_planar_move.so">
+    <plugin name="robomaster_steering1" filename="libgazebo_ros_planar_move.so">
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
-      <odometryRate>50.0</odometryRate>
+      <odometryRate>20.0</odometryRate>
       <robotBaseFrame>base_link</robotBaseFrame>
+      <leftFrontJoint>front_left_wheel_joint</leftFrontJoint>
+      <rightFrontJoint>front_right_wheel_joint</rightFrontJoint>
+      <leftRearJoint>rear_left_wheel_joint</leftRearJoint>
+      <rightRearJoint>rear_right_wheel_joint</rightRearJoint>
+      <wheelSeparation>0.25</wheelSeparation>
+      <wheelDiameter>0.05</wheelDiameter>
       <publishTF>false</publishTF>
+      <covariance_x>0.0001</covariance_x>
+      <covariance_y>0.0001</covariance_y>
+      <covariance_yaw>0.01</covariance_yaw>
       <ros>
           <namespace>robot1</namespace>
       </ros>
@@ -58,11 +67,12 @@
         </noise>
       </camera>
       <plugin filename="libgazebo_ros_camera.so" name="camera_controller1">
-        <frame_name>robot1/camera_optical_link</frame_name>
+        <frame_name>camera_optical_link</frame_name>
+        <cameraName>cam1</cameraName>
         <min_depth>0.1</min_depth>
         <max_depth>100</max_depth>
         <ros>
-          <namespace>/robot1</namespace>
+          <namespace>testnamespace</namespace>
         </ros>
       </plugin>
     </sensor>
@@ -144,7 +154,7 @@
     <visual name="front_hit_sensor">
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="($find robomaster_description)/meshes/hit_sensor.dae" scale="1.0 1.0 1.0"/>
+        <mesh filename="/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/meshes/hit_sensor.dae" scale="1.0 1.0 1.0"/>
       </geometry>
       <material name="hit_detector"/>
     </visual>
@@ -158,7 +168,7 @@
     <visual name="front_led">
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="($find robomaster_description)/meshes/led.dae" scale="1.0 1.0 1.0"/>
+        <mesh filename="/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/meshes/led.dae" scale="1.0 1.0 1.0"/>
       </geometry>
       <material name="led_light"/>
     </visual>
@@ -182,7 +192,7 @@
     <visual name="left_hit_sensor">
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="($find robomaster_description)/meshes/hit_sensor.dae" scale="1.0 1.0 1.0"/>
+        <mesh filename="/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/meshes/hit_sensor.dae" scale="1.0 1.0 1.0"/>
       </geometry>
       <material name="hit_detector"/>
     </visual>
@@ -196,7 +206,7 @@
     <visual name="left_led">
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="($find robomaster_description)/meshes/led.dae" scale="1.0 1.0 1.0"/>
+        <mesh filename="/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/meshes/led.dae" scale="1.0 1.0 1.0"/>
       </geometry>
       <material name="led_light"/>
     </visual>
@@ -220,7 +230,7 @@
     <visual name="rear_hit_sensor">
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="($find robomaster_description)/meshes/hit_sensor.dae" scale="1.0 1.0 1.0"/>
+        <mesh filename="/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/meshes/hit_sensor.dae" scale="1.0 1.0 1.0"/>
       </geometry>
       <material name="hit_detector"/>
     </visual>
@@ -234,7 +244,7 @@
     <visual name="rear_led">
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="($find robomaster_description)/meshes/led.dae" scale="1.0 1.0 1.0"/>
+        <mesh filename="/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/meshes/led.dae" scale="1.0 1.0 1.0"/>
       </geometry>
       <material name="led_light"/>
     </visual>
@@ -258,7 +268,7 @@
     <visual name="right_hit_sensor">
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="($find robomaster_description)/meshes/hit_sensor.dae" scale="1.0 1.0 1.0"/>
+        <mesh filename="/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/meshes/hit_sensor.dae" scale="1.0 1.0 1.0"/>
       </geometry>
       <material name="hit_detector"/>
     </visual>
@@ -272,7 +282,7 @@
     <visual name="right_led">
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="($find robomaster_description)/meshes/led.dae" scale="1.0 1.0 1.0"/>
+        <mesh filename="/home/benko/ros2_rm/install/robomaster_description/share/robomaster_description/meshes/led.dae" scale="1.0 1.0 1.0"/>
       </geometry>
       <material name="led_light"/>
     </visual>

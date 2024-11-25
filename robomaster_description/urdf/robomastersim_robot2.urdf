@@ -1,5 +1,37 @@
 <?xml version="1.0" ?>
 <robot name="robomaster_2">
+  <gazebo reference="robot2/camera_link">
+    <pose>0 0 0 1.57 0 0</pose>
+    <sensor name="camera2" type="camera">
+      <update_rate>20</update_rate>
+      <visualize>true</visualize>
+      <camera name="cam2">
+        <horizontal_fov>1.3962634</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>360</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>100</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.1</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+      <plugin filename="libgazebo_ros_camera.so" name="camera2">
+        <frame_name>camera_optical_link</frame_name>
+        <min_depth>0.1</min_depth>
+        <max_depth>100</max_depth>
+        <ros>
+          <namespace>robot2</namespace>
+        </ros>
+      </plugin>
+    </sensor>
+  </gazebo>
   <ros2_control name="GazeboSimSystem" type="system">
     <hardware>
       <plugin>gazebo_ros2_control/GazeboSystem</plugin>
@@ -23,49 +55,26 @@
       <parameters>/home/benko/ros2_rm/src/robomaster_ros/robomaster_description/config/simcontroller_robot2.yaml</parameters>
       <robot_param_node>/robot2/robot_state_publisher</robot_param_node>
     </plugin>
-    <plugin name="robomaster_steering" filename="libgazebo_ros_planar_move.so">
+    <plugin name="robomaster_steering2" filename="libgazebo_ros_planar_move.so">
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
       <odometryRate>50.0</odometryRate>
       <robotBaseFrame>base_link</robotBaseFrame>
+      <leftFrontJoint>front_left_wheel_joint</leftFrontJoint>
+      <rightFrontJoint>front_right_wheel_joint</rightFrontJoint>
+      <leftRearJoint>rear_left_wheel_joint</leftRearJoint>
+      <rightRearJoint>rear_right_wheel_joint</rightRearJoint>
+      <wheelSeparation>0.25</wheelSeparation>
+      <wheelDiameter>0.05</wheelDiameter>
       <publishTF>false</publishTF>
+      <covariance_x>0.0001</covariance_x>
+      <covariance_y>0.0001</covariance_y>
+      <covariance_yaw>0.01</covariance_yaw>
       <ros>
           <namespace>robot2</namespace>
       </ros>
     </plugin>
-  </gazebo>
-  <gazebo reference="robot2/camera_link">
-    <pose>0 0 0 1.57 0 0</pose>
-    <sensor name="camera2" type="camera">
-      <update_rate>20</update_rate>
-      <visualize>true</visualize>
-      <camera name="cam2">
-        <horizontal_fov>1.3962634</horizontal_fov>
-        <image>
-          <width>640</width>
-          <height>360</height>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.02</near>
-          <far>100</far>
-        </clip>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.007</stddev>
-        </noise>
-      </camera>
-      <plugin filename="libgazebo_ros_camera.so" name="camera2">
-        <frame_name>robot2/camera_optical_link</frame_name>
-        <min_depth>0.1</min_depth>
-        <max_depth>100</max_depth>
-        <ros>
-          <namespace>/robot2</namespace>
-        </ros>
-      </plugin>
-    </sensor>
   </gazebo>
   <link name="base_link"/>
   <link name="chassis_base_link">
