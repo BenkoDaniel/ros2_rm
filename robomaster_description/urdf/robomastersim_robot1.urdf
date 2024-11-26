@@ -58,7 +58,7 @@
         </image>
         <clip>
           <near>0.02</near>
-          <far>100</far>
+          <far>8.0</far>
         </clip>
         <noise>
           <type>gaussian</type>
@@ -67,12 +67,10 @@
         </noise>
       </camera>
       <plugin filename="libgazebo_ros_camera.so" name="camera_controller1">
-        <frame_name>camera_optical_link</frame_name>
+        <frame_name>robot1/camera_optical_link</frame_name>
         <cameraName>cam1</cameraName>
-        <min_depth>0.1</min_depth>
-        <max_depth>100</max_depth>
         <ros>
-          <namespace>testnamespace</namespace>
+          <namespace>robot1</namespace>
         </ros>
       </plugin>
     </sensor>
@@ -813,7 +811,7 @@
       <material name="metal"/>
     </visual>
   </link>
-  <link name="camera_optical_link">
+  <link name="robot1/camera_optical_link">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.001"/>
@@ -825,10 +823,10 @@
     <parent link="blaster_link"/>
     <child link="robot1/camera_link"/>
   </joint>
-  <joint name="camera_optical_joint" type="fixed">
+  <joint name="robot1/camera_optical_joint" type="fixed">
     <origin rpy="0.041623 0 -1.5707963267948966" xyz="0.002 0.00 0.004"/>
     <parent link="robot1/camera_link"/>
-    <child link="camera_optical_link"/>
+    <child link="robot1/camera_optical_link"/>
   </joint>
   <link name="intelligent_controller_link">
     <inertial>
