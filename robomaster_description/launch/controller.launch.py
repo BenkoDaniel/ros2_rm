@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import GroupAction, RegisterEventHandler
+from launch.actions import GroupAction, RegisterEventHandler, LogInfo
 from launch.event_handlers import OnProcessExit
 from launch_ros.actions import Node, PushRosNamespace
 from launch_ros.substitutions import FindPackageShare
@@ -151,10 +151,9 @@ def generate_launch_description():
             robot1_joint_state_broadcaster_spawner,
             robot1_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
             robot1_command_converter,
-            #robot1_simballtracker,
-            #robot1_simballfollower
+            robot1_simballtracker,
+            robot1_simballfollower
         ]),
-
         RegisterEventHandler(
             OnProcessExit(
                 target_action=robot1_gimbal_controller_spawner,
@@ -166,8 +165,8 @@ def generate_launch_description():
                         robot2_joint_state_broadcaster_spawner,
                         robot2_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
                         robot2_command_converter,
-                        #robot2_simballtracker,
-                        #robot2_simballfollower
+                        robot2_simballtracker,
+                        robot2_simballfollower
                     ])
                 ]
             )

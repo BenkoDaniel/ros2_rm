@@ -27,6 +27,8 @@
         <cameraName>cam2</cameraName>
         <ros>
           <namespace>robot2</namespace>
+          <remapping>camera2/image_raw:=/robot2/camera2/image_raw</remapping>
+          <remapping>camera2/camera_info:=/robot2/camera2/camera_info</remapping>
         </ros>
       </plugin>
     </sensor>
