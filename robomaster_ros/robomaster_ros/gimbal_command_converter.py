@@ -15,9 +15,9 @@ class GimbalCommandToStd(Node):
         self.publisher = self.create_publisher(Float64MultiArray, 'gim_controller/commands', 10)
 
     def command_callback(self, msg):
-        std_command = Float64MultiArray()
-        std_command.data = [-msg.yaw_speed, msg.pitch_speed]
-        self.publisher.publish(std_command)
+        conv_command = Float64MultiArray()
+        conv_command.data = [-msg.yaw_speed, msg.pitch_speed]
+        self.publisher.publish(conv_command)
 
 def main(args=None):
     rclpy.init(args=args)
