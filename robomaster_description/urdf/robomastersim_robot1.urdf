@@ -24,7 +24,7 @@
       <robot_param_node>/robot1/robot_state_publisher</robot_param_node>
     </plugin>
     <plugin name="robomaster_steering1" filename="libgazebo_ros_planar_move.so">
-      <commandTopic>converted_cmd_vel</commandTopic>
+      <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
       <odometryRate>20.0</odometryRate>
