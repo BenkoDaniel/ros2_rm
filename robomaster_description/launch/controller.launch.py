@@ -67,7 +67,8 @@ def generate_launch_description():
     )
     robot1_vel_converter = Node(
         package="robomaster_ros",
-        executable="vel_command_converter"
+        executable="vel_command_converter",
+        parameters=[{'use_sim_conversion': 'true'}]
     )
 
     robot1_simballtracker = Node(
