@@ -61,7 +61,7 @@ def generate_launch_description():
         namespace=robot1_namespace,
         arguments=["gim_controller", "--controller-manager", "controller_manager"],
     )
-    robot1_command_converter = Node(
+    robot1_gimbal_command_converter = Node(
         package="robomaster_ros",
         executable="gimbal_command_converter",
     )
@@ -119,7 +119,7 @@ def generate_launch_description():
         namespace=robot2_namespace,
         arguments=["gim_controller", "--controller-manager", "controller_manager"],
     )
-    robot2_command_converter = Node(
+    robot2_gimbal_command_converter = Node(
         package="robomaster_ros",
         executable="gimbal_command_converter",
     )
@@ -131,6 +131,11 @@ def generate_launch_description():
     robot2_simballfollower = Node(
         package="robomaster_ros",
         executable="ballfollower",
+    )
+    robot2_vel_converter = Node(
+        package="robomaster_ros",
+        executable="vel_command_converter",
+        parameters=[{'use_sim_conversion': 'true'}]
     )
 #endregion
 
@@ -155,7 +160,7 @@ def generate_launch_description():
             robot1_robot_state_publisher,
             robot1_joint_state_broadcaster_spawner,
             robot1_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
-            robot1_command_converter,
+            robot1_gimbal_command_converter,
             robot1_vel_converter,
             #robot1_simballtracker,
             #robot1_simballfollower
@@ -170,7 +175,8 @@ def generate_launch_description():
         #                robot2_robot_state_publisher,
         #                robot2_joint_state_broadcaster_spawner,
         #                robot2_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
-        #                robot2_command_converter,
+        #                robot2_gimbal_command_converter,
+        #                robot2_vel_converter,
         #                robot2_simballtracker,
         #                robot2_simballfollower
         #            ])
