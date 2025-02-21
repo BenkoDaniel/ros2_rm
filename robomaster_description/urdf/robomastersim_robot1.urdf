@@ -28,17 +28,10 @@
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
       <odometryRate>20.0</odometryRate>
-      <robotBaseFrame>base_link</robotBaseFrame>
-      <leftFrontJoint>front_left_wheel_joint</leftFrontJoint>
-      <rightFrontJoint>front_right_wheel_joint</rightFrontJoint>
-      <leftRearJoint>rear_left_wheel_joint</leftRearJoint>
-      <rightRearJoint>rear_right_wheel_joint</rightRearJoint>
-      <wheelSeparation>0.25</wheelSeparation>
+      <robotBaseFrame>chassis_base_link</robotBaseFrame>
+      <wheelSeparation>0.2</wheelSeparation>
       <wheelDiameter>0.05</wheelDiameter>
       <publishTF>false</publishTF>
-      <covariance_x>0.0001</covariance_x>
-      <covariance_y>0.0001</covariance_y>
-      <covariance_yaw>0.01</covariance_yaw>
       <ros>
         <namespace>robot1</namespace>
       </ros>
