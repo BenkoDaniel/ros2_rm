@@ -27,7 +27,7 @@ class VelCommandConverter(Node):
             conv_command.linear.z = msg.linear.z
             conv_command.angular.x = msg.angular.x
             conv_command.angular.y = msg.angular.y
-            conv_command.angular.z = msg.angular.z * 5.5
+            conv_command.angular.z = msg.angular.z * 5.65
             self.publisher.publish(conv_command)
 
         if self.use_sim_conv == 'false':
