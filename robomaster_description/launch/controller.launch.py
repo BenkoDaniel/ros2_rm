@@ -162,25 +162,25 @@ def generate_launch_description():
             robot1_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
             robot1_gimbal_command_converter,
             robot1_vel_converter,
-            #robot1_simballtracker,
+            robot1_simballtracker,
             #robot1_simballfollower
         ]),
-        #RegisterEventHandler(
-        #    OnProcessExit(
-        #        target_action=robot1_gimbal_controller_spawner,
-        #        on_exit=[
-        #            GroupAction([
-        #                PushRosNamespace(robot2_namespace),
-        #                robot2_spawn_entity_node,
-        #                robot2_robot_state_publisher,
-        #                robot2_joint_state_broadcaster_spawner,
-        #                robot2_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
-        #                robot2_gimbal_command_converter,
-        #                robot2_vel_converter,
-        #                robot2_simballtracker,
-        #                robot2_simballfollower
-        #            ])
-        #        ]
-        #    )
-        #),
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=robot1_gimbal_controller_spawner,
+                on_exit=[
+                    GroupAction([
+                        PushRosNamespace(robot2_namespace),
+                        robot2_spawn_entity_node,
+                        robot2_robot_state_publisher,
+                        robot2_joint_state_broadcaster_spawner,
+                        robot2_delay_gimbal_controller_spawner_after_joint_state_broadcaster_spawner,
+                        robot2_gimbal_command_converter,
+                        robot2_vel_converter,
+                        robot2_simballtracker,
+                        #robot2_simballfollower
+                    ])
+                ]
+            )
+        ),
     ])
