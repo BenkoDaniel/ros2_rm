@@ -19,37 +19,13 @@ class RobomasterSoccerEnv(gym.Env):
         self.action_space = spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),
                                        high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
                                        dtype=np.float32) #the whole twist msg
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(10,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32)
         #robot1_x, robot1_y,
         #robot2_x, robot2_y,
         #ball_x, ball_y, ball_z
 
         rclpy.init()
         self.node = Node("Robomaster_Soccer_env")
-
-        #to move a robot to initial position
-        self.set_robot_1_state = EntityState()
-        self.set_robot_1_state.pose.position.x = -0.5
-        self.set_robot_1_state.pose.position.y = 0.0
-        self.set_robot_1_state.pose.position.z = 0.0
-        self.robot_1_state = SetEntityState.Request()
-
-        self.set_robot_2_state = EntityState()
-        self.set_robot_2_state.pose.position.x = 0.5
-        self.set_robot_2_state.pose.position.y = 0.0
-        self.set_robot_2_state.pose.position.z = 0.0
-        self.robot_2_state = SetEntityState.Request()
-
-        self.set_sphere_state = EntityState()
-        self.set_sphere_state.name = "ball"
-        self.set_sphere_state.pose.position.x = 0.0
-        self.set_sphere_state.pose.position.y = 0.0
-        self.set_sphere_state.pose.position.z = 0.175
-        self.set_sphere_state.pose.orientation.x = 0.0
-        self.set_sphere_state.pose.orientation.y = 0.0
-        self.set_sphere_state.pose.orientation.z = 0.0
-        self.set_sphere_state.pose.orientation.w = 1.0
-        self.sphere_state = SetEntityState.Request()
 
         self.set_state = self.node.create_client(SetEntityState, "/gazebo/set_entity_state")
         self.pause = self.node.create_client(Empty, "/pause_physics")
@@ -63,38 +39,61 @@ class RobomasterSoccerEnv(gym.Env):
         self.robot1_odom_sub = self.node.create_subscription(Odometry, "/robot1/odom", self.robot1_odom_callback, 10)
         self.robot2_odom_sub = self.node.create_subscription(Odometry, "/robot2/odom", self.robot2_odom_callback, 10)
         self.robot1_ball_sub = self.node.create_subscription(Point, "/robot1/detected_ball", self.robot1_ball_callback, 10)
-        self.robot2_ball_sub = self.node.create_subscription(Point, "/robot2/detected_ball", self.robot2_ball_callback, 10)
+
+        #to move a robot to initial position
+        self.set_robot1_state = EntityState()
+        self.set_robot1_state.name = "robomaster_1::chassis_base_link"
+        self.set_robot1_state.pose.position.x = 0.0
+        self.set_robot1_state.pose.position.y = -0.5
+        self.set_robot1_state.pose.position.z = 0.0
+        self.set_robot1_state.pose.orientation.z = 1.57
+        self.robot1_state = SetEntityState.Request()
+
+        self.set_robot2_state = EntityState()
+        self.set_robot2_state.name = "robomaster_2::chassis_base_link"
+        self.set_robot2_state.pose.position.x = 0.0
+        self.set_robot2_state.pose.position.y = 0.5
+        self.set_robot2_state.pose.position.z = 0.0
+        self.set_robot2_state.pose.orientation.z = -1.57
+        self.robot2_state = SetEntityState.Request()
+
+        self.set_sphere_state = EntityState()
+        self.set_sphere_state.name = "ball"
+        self.set_sphere_state.pose.position.x = 0.0
+        self.set_sphere_state.pose.position.y = 0.0
+        self.set_sphere_state.pose.position.z = 0.175
+        self.set_sphere_state.pose.orientation.x = 0.0
+        self.set_sphere_state.pose.orientation.y = 0.0
+        self.set_sphere_state.pose.orientation.z = 0.0
+        self.set_sphere_state.pose.orientation.w = 1.0
+        self.sphere_state = SetEntityState.Request()
 
         self.t = 0
         self.t_limit = 6000
 
-        self.robot1_state = None
-        self.robot2_state = None
+        self.robot1_odom = None
+        self.robot2_odom = None
         self.robot1_ball_relative = None
-        self.robot2_ball_relative = None
         self.done = False
-        self.reward = 0
+        self.reward = None
 
-        # robot1_odom (4),  robot2_odom (4), ??
-        # robot1_ball_dx, robot1_ball_dy, robot2_ball_dx, robot2_ball_dy  - relative coordinates
+        # robot1_odom (4),  robot2_odom (4)
+        # robot1_ball_dx, robot1_ball_dy,
         # ball_x, ball_y  - from gazebo
 
-        self.observation = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-
+        self.observation = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     def robot1_odom_callback(self, msg):
-        self.robot1_state = [msg.pose.pose.position.x, msg.pose.pose.position.y,
+        self.robot1_odom = [msg.pose.pose.position.x, msg.pose.pose.position.y,
                              msg.twist.twist.linear.x, msg.twist.twist.linear.y]
 
     def robot2_odom_callback(self, msg):
-        self.robot2_state = [msg.pose.pose.position.x, msg.pose.pose.position.y,
+        self.robot2_odom = [msg.pose.pose.position.x, msg.pose.pose.position.y,
                              msg.twist.twist.linear.x, msg.twist.twist.linear.y]
 
     def robot1_ball_callback(self, msg):
         self.robot1_ball_relative = [msg.x, msg.y]
 
-    def robot2_ball_callback(self, msg):
-        self.robot2_ball_relative = [msg.x, msg.y]
 
     def step(self, action):
         global ball_position
@@ -130,40 +129,44 @@ class RobomasterSoccerEnv(gym.Env):
         except rclpy.ServiceException as e:
             self.get_logger().info("/gazebo/pause_physics service call failed")
 
-        if abs(ball_position[0]) > 1.55:
-            if ball_position[0] < -1.55:
-                self.robot1_life -= 1
+        if abs(ball_position[0]) > 1.1:
+            if ball_position[0] < -1.1:
                 self.reward = -100
                 self.get_logger().info('ROBOT1 LOST A POINT!')
-            elif ball_position[0] > 1.55:
-                self.robot2_life -= 1
-                self.reward = 1000
+            elif ball_position[0] > 1.1:
+                self.reward = 10000
                 self.get_logger().info('ROBOT1 GET A POINT!')
             self.reset()
         else:
             self.reward = 0
 
         if self.t >= self.t_limit:
+            self.reward = self.count_reward_without_goal(self.robot1_odom, ball_position)
             self.done = True
 
         self.observation = np.array([
-            self.robot_1_state[0],
-            self.robot_1_state[1],
-            self.robot_1_state[2],
-            self.robot_1_state[3],
-            self.robot_2_state[0],
-            self.robot_2_state[1],
-            self.robot_2_state[2],
-            self.robot_2_state[3],
+            self.robot1_odom[0],
+            self.robot1_odom[1],
+            self.robot1_odom[2],
+            self.robot1_odom[3],
+            self.robot2_odom[0],
+            self.robot2_odom[1],
+            self.robot2_odom[2],
+            self.robot2_odom[3],
             self.robot1_ball_relative[0],
             self.robot1_ball_relative[1],
-            self.robot2_ball_relative[0],
-            self.robot2_ball_relative[1],
             ball_position[0],
             ball_position[1]
         ])
 
         return self.observation, self.reward, self.done, self.info
+
+    def count_reward_without_goal(self, robot1_odom, ball):
+        robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
+        eucl_dist_robot1 = np.linalg.norm(robot1_coord, ball)
+        reward = (0.5-eucl_dist_robot1)*10 + ball[0]*100   #my goal is to give more reward if it ends up closer to the ball, or give more reward, if it moves the ball closer to the goal
+        return reward
+
 
     def reset(self):
         return self.observation   #reward, done, info can't be included
@@ -188,7 +191,7 @@ class GetBallPosition(Node):
     def ball_pos_callback(self, data):
         global ball_position
 
-        unit_sphere_id = data.name.index('unit_sphere')
+        ball_id = data.name.index('ball')
 
-        ball_position[0] = data.pose[unit_sphere_id].position.x
-        ball_position[1] = data.pose[unit_sphere_id].position.y
+        ball_position[0] = data.pose[ball_id].position.x
+        ball_position[1] = data.pose[ball_id].position.y
