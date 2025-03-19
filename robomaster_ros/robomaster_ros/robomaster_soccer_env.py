@@ -1,3 +1,4 @@
+import random
 import gym
 import rclpy
 from rclpy.node import Node
@@ -92,7 +93,10 @@ class RobomasterSoccerEnv(gym.Env):
                              msg.twist.twist.linear.x, msg.twist.twist.linear.y]
 
     def robot1_ball_callback(self, msg):
-        self.robot1_ball_relative = [msg.x, msg.y]
+        if msg.z == 1:
+            self.robot1_ball_relative = [msg.x, msg.y]
+        else:
+            self.robot1_ball_relative = [0, 0]
 
 
     def step(self, action):
@@ -167,15 +171,64 @@ class RobomasterSoccerEnv(gym.Env):
         reward = (0.5-eucl_dist_robot1)*10 + ball[0]*100   #my goal is to give more reward if it ends up closer to the ball, or give more reward, if it moves the ball closer to the goal
         return reward
 
-
     def reset(self):
+        while not self.reset_world.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('reset : service not available, waiting again...')
+
+        try:
+            self.reset_world.call_async(Empty.Request())
+        except:
+            import traceback
+            traceback.print_exc()
+
+        if self.done:
+            self.t = 0
+            self.done = False
+
+        self.robot1_state = SetEntityState.Request()
+        self.robot1_state._state = self.set_robot_1_state
+        while not self.set_state.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('reset : service not available, waiting again...')
+
+        self.robot2_state = SetEntityState.Request()
+        self.robot2_state._state = self.set_robot2_state
+        while not self.set_state.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('reset : service not available, waiting again...')
+
+        try:
+            self.set_state.call_async(self.robot_1_state)
+        except rclpy.ServiceException as e:
+            print("/gazebo/reset_simulation service call failed")
+
+        self.set_sphere_state.twist.linear.x = -1*(0.1 + 0.5*random.random())
+        self.set_sphere_state.twist.linear.y = 0.6*(random.random()-0.5)
+        self.set_sphere_state.twist.linear.z = 0.0
+
+        self.sphere_state._state = self.set_sphere_state
+        while not self.set_state.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('reset : service not available, waiting again...')
+        try:
+            self.set_state.call_async(self.sphere_state)
+        except:
+            import traceback
+            traceback.print_exc()
+
+        self.observation = np.array([
+            self.robot1_odom[0],
+            self.robot1_odom[1],
+            self.robot1_odom[2],
+            self.robot1_odom[3],
+            self.robot2_odom[0],
+            self.robot2_odom[1],
+            self.robot2_odom[2],
+            self.robot2_odom[3],
+            self.robot1_ball_relative[0],
+            self.robot1_ball_relative[1],
+            ball_position[0],
+            ball_position[1]
+        ])
+
         return self.observation   #reward, done, info can't be included
-
-    def render(self, mode='human'):
-        ...
-
-    def close(self):
-        ...
 
 
 class GetBallPosition(Node):
