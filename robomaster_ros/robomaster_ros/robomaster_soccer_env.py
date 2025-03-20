@@ -1,18 +1,18 @@
 import random
-import gym
+import gymnasium
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist, Point
 from nav_msgs.msg import Odometry
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 from gazebo_msgs.msg import ModelState, EntityState, ModelStates, LinkStates
 from gazebo_msgs.srv import SetEntityState
 from std_srvs.srv import Empty
 
 ball_position = np.array([0, 0], float)
 
-class RobomasterSoccerEnv(gym.Env):
+class RobomasterSoccerEnv(gymnasium.Env):
     '''Custom Environment that follows the gym interface'''
 
     def __init__(self):
@@ -120,26 +120,26 @@ class RobomasterSoccerEnv(gym.Env):
         self.node.get_clock().sleep_for(rclpy.duration.Duration(seconds=0.1))
 
         while not self.unpause.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('service not available, waiting again...')
+            self.node.get_logger().info('service not available, waiting again...')
         try:
             self.unpause.call_async(Empty.Request())
         except:
-            self.get_logger().info("/unpause_physics service call failed")
+            self.node.get_logger().info("/unpause_physics service call failed")
 
         while not self.pause.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('service not available, waiting again...')
+            self.node.get_logger().info('service not available, waiting again...')
         try:
             self.pause.call_async(Empty.Request())
-        except rclpy.ServiceException as e:
-            self.get_logger().info("/gazebo/pause_physics service call failed")
+        except:
+            self.node.get_logger().info("/gazebo/pause_physics service call failed")
 
         if abs(ball_position[0]) > 1.1:
             if ball_position[0] < -1.1:
                 self.reward = -100
-                self.get_logger().info('ROBOT1 LOST A POINT!')
+                self.node.get_logger().info('ROBOT1 LOST A POINT!')
             elif ball_position[0] > 1.1:
                 self.reward = 10000
-                self.get_logger().info('ROBOT1 GET A POINT!')
+                self.node.get_logger().info('ROBOT1 GET A POINT!')
             self.reset()
         else:
             self.reward = 0
@@ -170,10 +170,10 @@ class RobomasterSoccerEnv(gym.Env):
         eucl_dist_robot1 = np.linalg.norm(robot1_coord, ball)
         reward = (0.5-eucl_dist_robot1)*10 + ball[0]*100   #my goal is to give more reward if it ends up closer to the ball, or give more reward, if it moves the ball closer to the goal
         return reward
-
-    def reset(self):
+    
+    def reset(self, *, seed = None, options = None):
         while not self.reset_world.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('reset : service not available, waiting again...')
+            self.node.get_logger().info('reset : service not available, waiting again...')
 
         try:
             self.reset_world.call_async(Empty.Request())
@@ -186,18 +186,18 @@ class RobomasterSoccerEnv(gym.Env):
             self.done = False
 
         self.robot1_state = SetEntityState.Request()
-        self.robot1_state._state = self.set_robot_1_state
+        self.robot1_state._state = self.set_robot1_state
         while not self.set_state.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('reset : service not available, waiting again...')
+            self.node.get_logger().info('reset : service not available, waiting again...')
 
         self.robot2_state = SetEntityState.Request()
         self.robot2_state._state = self.set_robot2_state
         while not self.set_state.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('reset : service not available, waiting again...')
+            self.node.get_logger().info('reset : service not available, waiting again...')
 
         try:
             self.set_state.call_async(self.robot_1_state)
-        except rclpy.ServiceException as e:
+        except:
             print("/gazebo/reset_simulation service call failed")
 
         self.set_sphere_state.twist.linear.x = -1*(0.1 + 0.5*random.random())
@@ -206,12 +206,14 @@ class RobomasterSoccerEnv(gym.Env):
 
         self.sphere_state._state = self.set_sphere_state
         while not self.set_state.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('reset : service not available, waiting again...')
+            self.node.get_logger().info('reset : service not available, waiting again...')
         try:
             self.set_state.call_async(self.sphere_state)
         except:
             import traceback
             traceback.print_exc()
+
+        #in the reset method, the robot1_odom and the others are still None, therefore it throws an exception, as they can't be indexed. Make default values to the first observation 
 
         self.observation = np.array([
             self.robot1_odom[0],
@@ -229,6 +231,12 @@ class RobomasterSoccerEnv(gym.Env):
         ])
 
         return self.observation   #reward, done, info can't be included
+    
+    def render(self):
+        return super().render()
+    
+    def close(self):
+        return super().close()
 
 
 class GetBallPosition(Node):
