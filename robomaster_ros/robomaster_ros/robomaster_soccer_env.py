@@ -20,7 +20,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.action_space = spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),
                                        high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
                                        dtype=np.float32) #the whole twist msg
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64)
         #robot1_x, robot1_y,
         #robot2_x, robot2_y,
         #ball_x, ball_y, ball_z
@@ -69,20 +69,21 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.set_sphere_state.pose.orientation.w = 1.0
         self.sphere_state = SetEntityState.Request()
 
-        self.t = 0
-        self.t_limit = 6000
-
-        self.robot1_odom = None
-        self.robot2_odom = None
-        self.robot1_ball_relative = None
-        self.done = False
-        self.reward = None
+        #self.t = 0
+        #self.t_limit = 6000
 
         # robot1_odom (4),  robot2_odom (4)
         # robot1_ball_dx, robot1_ball_dy,
         # ball_x, ball_y  - from gazebo
 
-        self.observation = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.robot1_odom = np.zeros(4)  # [x, y, vx, vy]
+        self.robot2_odom = np.zeros(4)  # [x, y, vx, vy]
+        self.robot1_ball_relative = np.zeros(2)  # [dx, dy]
+        self.observation = np.zeros(12)
+        self.terminated = False
+        self.truncated = False
+        self.reward = None
+        self.info = {}
 
     def robot1_odom_callback(self, msg):
         self.robot1_odom = [msg.pose.pose.position.x, msg.pose.pose.position.y,
@@ -101,52 +102,49 @@ class RobomasterSoccerEnv(gymnasium.Env):
 
     def step(self, action):
         global ball_position
-        self.t += 1
+        #self.t += 1
 
         robot1_command = Twist()
         robot2_command = Twist()
 
-        robot1_command.linear.x = action[0]
-        robot1_command.linear.y = action[1]
-        robot1_command.angular.z = action[2]
+        robot1_command.linear.x = float(action[0])
+        robot1_command.linear.y = float(action[1])
+        robot1_command.angular.z = float(action[2])
 
-        robot2_command.linear.x = action[3]
-        robot2_command.linear.y = action[4]
-        robot2_command.angular.z = action[5]
+        robot2_command.linear.x = float(action[3])
+        robot2_command.linear.y = float(action[4])
+        robot2_command.angular.z = float(action[5])
 
         self.robot1_vel_publisher.publish(robot1_command)
         self.robot2_vel_publisher.publish(robot2_command)
 
-        self.node.get_clock().sleep_for(rclpy.duration.Duration(seconds=0.1))
+        rclpy.spin_once(self.node, timeout_sec=1)
 
-        while not self.unpause.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('service not available, waiting again...')
-        try:
-            self.unpause.call_async(Empty.Request())
-        except:
-            self.node.get_logger().info("/unpause_physics service call failed")
+        #while not self.unpause.wait_for_service(timeout_sec=1.0):
+        #    self.node.get_logger().info('service not available, waiting again...')
+        #try:
+        #    self.unpause.call_async(Empty.Request())
+        #except:
+        #    self.node.get_logger().info("/unpause_physics service call failed")
 
-        while not self.pause.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('service not available, waiting again...')
-        try:
-            self.pause.call_async(Empty.Request())
-        except:
-            self.node.get_logger().info("/gazebo/pause_physics service call failed")
+        #while not self.pause.wait_for_service(timeout_sec=1.0):
+        #    self.node.get_logger().info('service not available, waiting again...')
+        #try:
+        #    self.pause.call_async(Empty.Request())
+        #except:
+        #    self.node.get_logger().info("/gazebo/pause_physics service call failed")
 
-        if abs(ball_position[0]) > 1.1:
-            if ball_position[0] < -1.1:
+        if abs(ball_position[1]) > 1.1:
+            if ball_position[1] < -1.1:
                 self.reward = -100
                 self.node.get_logger().info('ROBOT1 LOST A POINT!')
-            elif ball_position[0] > 1.1:
+                self.terminated = True
+            elif ball_position[1] > 1.1:
                 self.reward = 10000
                 self.node.get_logger().info('ROBOT1 GET A POINT!')
-            self.reset()
+                self.terminated = True
         else:
-            self.reward = 0
-
-        if self.t >= self.t_limit:
             self.reward = self.count_reward_without_goal(self.robot1_odom, ball_position)
-            self.done = True
 
         self.observation = np.array([
             self.robot1_odom[0],
@@ -163,27 +161,26 @@ class RobomasterSoccerEnv(gymnasium.Env):
             ball_position[1]
         ])
 
-        return self.observation, self.reward, self.done, self.info
+        return self.observation, self.reward, self.terminated, self.truncated, self.info
 
     def count_reward_without_goal(self, robot1_odom, ball):
         robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
-        eucl_dist_robot1 = np.linalg.norm(robot1_coord, ball)
-        reward = (0.5-eucl_dist_robot1)*10 + ball[0]*100   #my goal is to give more reward if it ends up closer to the ball, or give more reward, if it moves the ball closer to the goal
+        eucl_dist_robot1 = np.linalg.norm(robot1_coord - ball)
+        reward = (0.5-float(eucl_dist_robot1))*10 + ball[1]*100   #my goal is to give more reward if it ends up closer to the ball, or give more reward, if it moves the ball closer to the goal
         return reward
     
-    def reset(self, *, seed = None, options = None):
+    def reset(self, *, seed=None, options = None):
         while not self.reset_world.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('reset : service not available, waiting again...')
-
         try:
             self.reset_world.call_async(Empty.Request())
-        except:
-            import traceback
-            traceback.print_exc()
+        except Exception as e:
+            self.node.get_logger().error(f"Reset world service call failed: {str(e)}")
+            return None
 
-        if self.done:
-            self.t = 0
-            self.done = False
+        #self.t = 0
+        self.terminated = False
+        self.truncated = False
 
         self.robot1_state = SetEntityState.Request()
         self.robot1_state._state = self.set_robot1_state
@@ -194,14 +191,13 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.robot2_state._state = self.set_robot2_state
         while not self.set_state.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('reset : service not available, waiting again...')
-
         try:
             self.set_state.call_async(self.robot_1_state)
         except:
             print("/gazebo/reset_simulation service call failed")
 
-        self.set_sphere_state.twist.linear.x = -1*(0.1 + 0.5*random.random())
-        self.set_sphere_state.twist.linear.y = 0.6*(random.random()-0.5)
+        self.set_sphere_state.twist.linear.x = 0.6*(random.random()-0.5)
+        self.set_sphere_state.twist.linear.y = -1*(0.1 + 0.5*random.random())
         self.set_sphere_state.twist.linear.z = 0.0
 
         self.sphere_state._state = self.set_sphere_state
@@ -210,10 +206,12 @@ class RobomasterSoccerEnv(gymnasium.Env):
         try:
             self.set_state.call_async(self.sphere_state)
         except:
-            import traceback
-            traceback.print_exc()
+            self.node.get_logger().error(f"Reset world service call failed: {str(e)}")
+            return None
 
-        #in the reset method, the robot1_odom and the others are still None, therefore it throws an exception, as they can't be indexed. Make default values to the first observation 
+        self.observation = np.zeros(12)
+        
+        rclpy.spin_once(self.node, timeout_sec=1)
 
         self.observation = np.array([
             self.robot1_odom[0],
@@ -230,7 +228,8 @@ class RobomasterSoccerEnv(gymnasium.Env):
             ball_position[1]
         ])
 
-        return self.observation   #reward, done, info can't be included
+
+        return self.observation, self.info  #reward, done, can't be included
     
     def render(self):
         return super().render()
