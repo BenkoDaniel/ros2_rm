@@ -11,9 +11,6 @@ from gazebo_msgs.msg import ModelState, EntityState, ModelStates, LinkStates
 from gazebo_msgs.srv import SetEntityState
 from std_srvs.srv import Empty
 
-ball_position = np.array([0, 0], float)
-prev_ball_position = np.array([0, 0], float)
-t = 0
 
 class RobomasterSoccerEnv(gymnasium.Env):
     '''Custom Environment that follows the gym interface'''
@@ -42,6 +39,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.robot1_odom_sub = self.node.create_subscription(Odometry, "/robot1/odom", self.robot1_odom_callback, 10)
         self.robot2_odom_sub = self.node.create_subscription(Odometry, "/robot2/odom", self.robot2_odom_callback, 10)
         self.robot1_ball_sub = self.node.create_subscription(Point, "/robot1/detected_ball", self.robot1_ball_callback, 10)
+        self.ball_sub = self.node.create_subscription(ModelStates, "/gazebo/model_states", self.ball_pos_callback, 10)
 
         #to move a robot to initial position
         self.set_robot1_state = EntityState()
@@ -71,7 +69,9 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.set_sphere_state.pose.orientation.w = 1.0
         self.sphere_state = SetEntityState.Request()
 
-        
+        self.ball_position = np.array([0, 0], float)
+        self.prev_ball_position = np.array([0, 0], float)
+        self.t = 0
         self.t_limit = 6000
 
         # robot1_odom (4),  robot2_odom (4)
@@ -101,13 +101,20 @@ class RobomasterSoccerEnv(gymnasium.Env):
         else:
             self.robot1_ball_relative = [0, 0]
 
+    def ball_pos_callback(self, data):        
+        if self.t%2 == 0:
+            self.prev_ball_position = copy.copy(self.ball_position)
+
+        ball_id = data.name.index('ball')
+
+        self.ball_position[0] = data.pose[ball_id].position.x
+        self.ball_position[1] = data.pose[ball_id].position.y
+        #print(ball_position)
+        #print(prev_ball_position)
+
 
     def step(self, action):
-        global ball_position
-        global prev_ball_position
-        global t
-        
-        t += 1
+        self.t += 1
 
         robot1_command = Twist()
         robot2_command = Twist()
@@ -139,17 +146,10 @@ class RobomasterSoccerEnv(gymnasium.Env):
         #except:
         #    self.node.get_logger().info("/gazebo/pause_physics service call failed")
 
-        if abs(ball_position[1]) > 1.0:
-            if ball_position[1] < -1.0:
-                self.reward = -100
-                self.terminated = True
-            elif ball_position[1] > 1.0:
-                self.reward = 100
-                self.terminated = True
-        else:
-            self.reward = self.count_reward_without_goal(self.robot1_odom, ball_position, prev_ball_position)
             
-        if t >= self.t_limit:
+        self.reward, self.terminated = self.count_reward(self.robot1_odom, self.ball_position, self.prev_ball_position)
+            
+        if self.t >= self.t_limit:
             self.terminated = True
             self.truncated = True
 
@@ -165,14 +165,15 @@ class RobomasterSoccerEnv(gymnasium.Env):
             self.robot2_odom[3],
             self.robot1_ball_relative[0],
             self.robot1_ball_relative[1],
-            ball_position[0],
-            ball_position[1]
+            self.ball_position[0],
+            self.ball_position[1]
         ])
 
         return self.observation, self.reward, self.terminated, self.truncated, self.info
 
-    def count_reward_without_goal(self, robot1_odom, ball, prev_ball):
-        """ reward = 0
+    def count_reward(self, robot1_odom, ball, prev_ball):
+        terminated = False
+        reward = 0
         robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
         prev_distance = np.linalg.norm(prev_ball - robot1_coord)
         current_distance = np.linalg.norm(ball - robot1_coord)
@@ -186,19 +187,26 @@ class RobomasterSoccerEnv(gymnasium.Env):
             reward += 5  #to reward kicking the ball in the right direction
         else:
             reward += -5
-
+        
         reward -=1  #for not scoring a goal
 
-        return reward """
+        if ball[1] < -1.0:
+            reward = -100
+            terminated = True
+        elif ball[1] > 1.0:
+            reward = 100
+            terminated = True
 
-        robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
+
+        return reward, terminated
+        
+        """ robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
         eucl_dist_robot1 = np.linalg.norm(robot1_coord - ball)
         reward = (0.5-float(eucl_dist_robot1))*10 + ball[1]*100   #my goal is to give more reward if it ends up closer to the ball, or give more reward, if it moves the ball closer to the goal
-        return reward
+        return reward """  
     
     def reset(self, *, seed=None, options = None):
-        global t
-        t = 0
+        self.t = 0
         self.terminated = False
         self.truncated = False
         self.reward = 0
@@ -249,10 +257,9 @@ class RobomasterSoccerEnv(gymnasium.Env):
             self.robot2_odom[3],
             self.robot1_ball_relative[0],
             self.robot1_ball_relative[1],
-            ball_position[0],
-            ball_position[1]
+            self.ball_position[0],
+            self.ball_position[1]
         ])
-
 
         return self.observation, self.info  #reward, done, can't be included
 
@@ -261,27 +268,3 @@ class RobomasterSoccerEnv(gymnasium.Env):
     
     def close(self):
         return super().close()
-
-
-class GetBallPosition(Node):
-
-    def __init__(self):
-        super().__init__('get_ball_position')
-        self.subscription = self.create_subscription(
-            ModelStates,
-            '/gazebo/model_states',
-            self.ball_pos_callback,
-            10)
-
-    def ball_pos_callback(self, data):
-        global ball_position
-        global prev_ball_position
-        global t
-        
-        if t%2 == 0:
-            prev_ball_position = copy.copy(ball_position)
-
-        ball_id = data.name.index('ball')
-
-        ball_position[0] = data.pose[ball_id].position.x
-        ball_position[1] = data.pose[ball_id].position.y

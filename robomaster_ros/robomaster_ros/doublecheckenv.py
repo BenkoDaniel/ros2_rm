@@ -1,7 +1,7 @@
 from robomaster_soccer_env import RobomasterSoccerEnv
 
 env = RobomasterSoccerEnv()
-episodes = 1
+episodes = 5
 
 for episode in range(episodes):
     done = False
