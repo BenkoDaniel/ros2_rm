@@ -1,6 +1,7 @@
 import random
 import gymnasium
 import rclpy
+import copy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist, Point
 from nav_msgs.msg import Odometry
@@ -11,6 +12,8 @@ from gazebo_msgs.srv import SetEntityState
 from std_srvs.srv import Empty
 
 ball_position = np.array([0, 0], float)
+prev_ball_position = np.array([0, 0], float)
+t = 0
 
 class RobomasterSoccerEnv(gymnasium.Env):
     '''Custom Environment that follows the gym interface'''
@@ -31,7 +34,6 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.set_state = self.node.create_client(SetEntityState, "/gazebo/set_entity_state")
         self.pause = self.node.create_client(Empty, "/pause_physics")
         self.unpause = self.node.create_client(Empty, "/unpause_physics")
-        self.reset_world = self.node.create_client(Empty, "/reset_world")
         self.req = Empty.Request
 
         self.robot1_vel_publisher = self.node.create_publisher(Twist, '/robot1/cmd_vel_original', 10)
@@ -43,7 +45,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
 
         #to move a robot to initial position
         self.set_robot1_state = EntityState()
-        self.set_robot1_state.name = "robomaster_1::chassis_base_link"
+        self.set_robot1_state.name = "robomaster_1"
         self.set_robot1_state.pose.position.x = 0.0
         self.set_robot1_state.pose.position.y = -0.5
         self.set_robot1_state.pose.position.z = 0.0
@@ -51,7 +53,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.robot1_state = SetEntityState.Request()
 
         self.set_robot2_state = EntityState()
-        self.set_robot2_state.name = "robomaster_2::chassis_base_link"
+        self.set_robot2_state.name = "robomaster_2"
         self.set_robot2_state.pose.position.x = 0.0
         self.set_robot2_state.pose.position.y = 0.5
         self.set_robot2_state.pose.position.z = 0.0
@@ -69,8 +71,8 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.set_sphere_state.pose.orientation.w = 1.0
         self.sphere_state = SetEntityState.Request()
 
-        #self.t = 0
-        #self.t_limit = 6000
+        
+        self.t_limit = 6000
 
         # robot1_odom (4),  robot2_odom (4)
         # robot1_ball_dx, robot1_ball_dy,
@@ -102,7 +104,10 @@ class RobomasterSoccerEnv(gymnasium.Env):
 
     def step(self, action):
         global ball_position
-        #self.t += 1
+        global prev_ball_position
+        global t
+        
+        t += 1
 
         robot1_command = Twist()
         robot2_command = Twist()
@@ -134,17 +139,20 @@ class RobomasterSoccerEnv(gymnasium.Env):
         #except:
         #    self.node.get_logger().info("/gazebo/pause_physics service call failed")
 
-        if abs(ball_position[1]) > 1.1:
-            if ball_position[1] < -1.1:
+        if abs(ball_position[1]) > 1.0:
+            if ball_position[1] < -1.0:
                 self.reward = -100
-                self.node.get_logger().info('ROBOT1 LOST A POINT!')
                 self.terminated = True
-            elif ball_position[1] > 1.1:
-                self.reward = 10000
-                self.node.get_logger().info('ROBOT1 GET A POINT!')
+            elif ball_position[1] > 1.0:
+                self.reward = 100
                 self.terminated = True
         else:
-            self.reward = self.count_reward_without_goal(self.robot1_odom, ball_position)
+            self.reward = self.count_reward_without_goal(self.robot1_odom, ball_position, prev_ball_position)
+            
+        if t >= self.t_limit:
+            self.terminated = True
+            self.truncated = True
+
 
         self.observation = np.array([
             self.robot1_odom[0],
@@ -163,36 +171,53 @@ class RobomasterSoccerEnv(gymnasium.Env):
 
         return self.observation, self.reward, self.terminated, self.truncated, self.info
 
-    def count_reward_without_goal(self, robot1_odom, ball):
+    def count_reward_without_goal(self, robot1_odom, ball, prev_ball):
+        """ reward = 0
+        robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
+        prev_distance = np.linalg.norm(prev_ball - robot1_coord)
+        current_distance = np.linalg.norm(ball - robot1_coord)
+        if current_distance < prev_distance:
+            reward += 1 # to reward being closer to the ball
+        else:
+            reward += -1
+
+        ball_direction = ball[1] - prev_ball[1]
+        if ball_direction > 0:
+            reward += 5  #to reward kicking the ball in the right direction
+        else:
+            reward += -5
+
+        reward -=1  #for not scoring a goal
+
+        return reward """
+
         robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
         eucl_dist_robot1 = np.linalg.norm(robot1_coord - ball)
         reward = (0.5-float(eucl_dist_robot1))*10 + ball[1]*100   #my goal is to give more reward if it ends up closer to the ball, or give more reward, if it moves the ball closer to the goal
         return reward
     
     def reset(self, *, seed=None, options = None):
-        while not self.reset_world.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('reset : service not available, waiting again...')
-        try:
-            self.reset_world.call_async(Empty.Request())
-        except Exception as e:
-            self.node.get_logger().error(f"Reset world service call failed: {str(e)}")
-            return None
-
-        #self.t = 0
+        global t
+        t = 0
         self.terminated = False
         self.truncated = False
+        self.reward = 0
 
         self.robot1_state = SetEntityState.Request()
         self.robot1_state._state = self.set_robot1_state
         while not self.set_state.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('reset : service not available, waiting again...')
+        try:
+            self.set_state.call_async(self.robot1_state)
+        except rclpy.ServiceException as e:
+            print("/gazebo/reset_simulation service call failed")
 
         self.robot2_state = SetEntityState.Request()
         self.robot2_state._state = self.set_robot2_state
         while not self.set_state.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('reset : service not available, waiting again...')
         try:
-            self.set_state.call_async(self.robot_1_state)
+            self.set_state.call_async(self.robot2_state)
         except:
             print("/gazebo/reset_simulation service call failed")
 
@@ -230,7 +255,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
 
 
         return self.observation, self.info  #reward, done, can't be included
-    
+
     def render(self):
         return super().render()
     
@@ -250,6 +275,11 @@ class GetBallPosition(Node):
 
     def ball_pos_callback(self, data):
         global ball_position
+        global prev_ball_position
+        global t
+        
+        if t%2 == 0:
+            prev_ball_position = copy.copy(ball_position)
 
         ball_id = data.name.index('ball')
 
