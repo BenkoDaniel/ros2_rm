@@ -84,7 +84,8 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.observation = np.zeros(12)
         self.terminated = False
         self.truncated = False
-        self.reward = None
+        self.reward = 0
+
         self.info = {}
 
     def robot1_odom_callback(self, msg):
@@ -147,7 +148,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
         #    self.node.get_logger().info("/gazebo/pause_physics service call failed")
 
             
-        self.reward, self.terminated = self.count_reward(self.robot1_odom, self.ball_position, self.prev_ball_position)
+        self.reward = self.count_reward(self.robot1_odom, self.ball_position, self.prev_ball_position)
             
         if self.t >= self.t_limit:
             self.terminated = True
@@ -172,7 +173,6 @@ class RobomasterSoccerEnv(gymnasium.Env):
         return self.observation, self.reward, self.terminated, self.truncated, self.info
 
     def count_reward(self, robot1_odom, ball, prev_ball):
-        terminated = False
         reward = 0
         robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
         prev_distance = np.linalg.norm(prev_ball - robot1_coord)
@@ -182,6 +182,9 @@ class RobomasterSoccerEnv(gymnasium.Env):
         else:
             reward += -1
 
+        if abs(robot1_coord[0]) > 1:
+            reward -= 10 #punish being outside the playground
+
         ball_direction = ball[1] - prev_ball[1]
         if ball_direction > 0:
             reward += 5  #to reward kicking the ball in the right direction
@@ -190,16 +193,15 @@ class RobomasterSoccerEnv(gymnasium.Env):
         
         reward -=1  #for not scoring a goal
 
-        if ball[1] < -1.0:
+        if ball[1] < -1.0 and not self.terminated:
             reward = -100
-            terminated = True
-        elif ball[1] > 1.0:
+            self.terminated = True
+        elif ball[1] > 1.0 and not self.terminated:
             reward = 100
-            terminated = True
+            self.terminated = True
 
 
-        return reward, terminated
-        
+        return reward
         """ robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
         eucl_dist_robot1 = np.linalg.norm(robot1_coord - ball)
         reward = (0.5-float(eucl_dist_robot1))*10 + ball[1]*100   #my goal is to give more reward if it ends up closer to the ball, or give more reward, if it moves the ball closer to the goal
@@ -209,7 +211,9 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.t = 0
         self.terminated = False
         self.truncated = False
+        self.ball_position = np.array([0, 0], float)
         self.reward = 0
+        self.prev_ball_position = np.array([0, 0], float)
 
         self.robot1_state = SetEntityState.Request()
         self.robot1_state._state = self.set_robot1_state
@@ -260,6 +264,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
             self.ball_position[0],
             self.ball_position[1]
         ])
+        
 
         return self.observation, self.info  #reward, done, can't be included
 
@@ -268,3 +273,12 @@ class RobomasterSoccerEnv(gymnasium.Env):
     
     def close(self):
         return super().close()
+    
+    def stop(self):
+        while not self.pause.wait_for_service(timeout_sec=1.0):
+            self.node.get_logger().info('service not available, waiting again...')
+        try:
+            self.pause.call_async(Empty.Request())
+        except:
+            self.node.get_logger().info("/gazebo/pause_physics service call failed")
+
