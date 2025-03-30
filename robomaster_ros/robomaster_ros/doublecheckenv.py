@@ -1,5 +1,4 @@
 from robomaster_soccer_env import RobomasterSoccerEnv
-import time
 
 env = RobomasterSoccerEnv()
 episodes = 5
