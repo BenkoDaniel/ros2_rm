@@ -1,6 +1,5 @@
-from stable_baselines3.common.env_checker import check_env
-from robomaster_soccer_env import RobomasterSoccerEnv
+from pettingzoo.test import parallel_api_test
+from robomaster_soccer_env import RobomasterSoccerEnv  # Import your environment
 
 env = RobomasterSoccerEnv()
-
-check_env(env)
+parallel_api_test(env)
