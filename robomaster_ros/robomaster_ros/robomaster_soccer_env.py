@@ -11,23 +11,25 @@ from pettingzoo.utils import ParallelEnv
 from gazebo_msgs.msg import ModelState, EntityState, ModelStates, LinkStates
 from gazebo_msgs.srv import SetEntityState
 from std_srvs.srv import Empty
+from functools import lru_cache
 
 
 class RobomasterSoccerEnv(ParallelEnv):
     '''Custom Environment that follows the pettingzoo interface'''
 
     def __init__(self):
+        rclpy.init()
         super(RobomasterSoccerEnv, self).__init__()
         self.agents = ["robot1", "robot2"]
-        self.possible_agents = self.agents[:]
-        self.observation_space = {agent: spaces.Box(low=-np.inf,
-                                                    high=np.inf,
-                                                    shape=(12,),
-                                                    dtype=np.float64) for agent in self.agents}
+        self._observation_spaces = {
+            "robot1": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64),
+            "robot2": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64)
+        }
 
-        rclpy.init()
+        self.possible_agents = self.agents[:]
         self.node = Node("Robomaster_Soccer_env")
 
+        
         self.set_state = self.node.create_client(SetEntityState, "/gazebo/set_entity_state")
         self.pause = self.node.create_client(Empty, "/pause_physics")
         self.unpause = self.node.create_client(Empty, "/unpause_physics")
@@ -86,8 +88,8 @@ class RobomasterSoccerEnv(ParallelEnv):
         self.robot1_observation = np.zeros(12)
         self.robot2_observation = np.zeros(12)
         self.observations = None
-        self.terminated = False
-        self.truncated = False
+        self.terminations = {"robot1": False, "robot2": False}
+        self.truncations = {"robot1": False, "robot2": False}
         self.robot1_reward = 0
         self.robot2_reward = 0
         self.rewards = None
@@ -103,6 +105,9 @@ class RobomasterSoccerEnv(ParallelEnv):
             }
         }
 
+    @lru_cache(maxsize=None)
+    def observation_space(self, agent):
+        return self._observation_spaces[agent]
 
     def action_space(self, agent):
         return spaces.Box(
@@ -189,8 +194,10 @@ class RobomasterSoccerEnv(ParallelEnv):
         }
             
         if self.t >= self.t_limit:
-            self.terminated = True
-            self.truncated = True
+            self.truncations = {
+                "robot1": True,
+                "robot2": True
+            }
 
 
         self.robot1_observation = np.array([
@@ -228,16 +235,8 @@ class RobomasterSoccerEnv(ParallelEnv):
             "robot2": self.robot2_observation,
         }
 
-        return self.observations, self.rewards, self.terminated, self.truncated, self.infos
-    
-    """ToDo:
-    Traceback (most recent call last):
-  File "/home/benko/ros2_rm/src/robomaster_ros/robomaster_ros/robomaster_ros/checkenv.py", line 5, in <module>
-    parallel_api_test(env)
-  File "/home/benko/.local/lib/python3.10/site-packages/pettingzoo/test/parallel_test.py", line 77, in parallel_api_test
-    assert isinstance(terminated, dict)
-AssertionError
-    """
+        return self.observations, self.rewards, self.terminations, self.truncations, self.infos
+
 
 
     def count_reward(self, robot_odom, ball, prev_ball):
@@ -245,6 +244,7 @@ AssertionError
         robot_coord = np.array([robot_odom[0], robot_odom[1]])
         prev_distance = np.linalg.norm(prev_ball - robot_coord)
         current_distance = np.linalg.norm(ball - robot_coord)
+        terminated = self.terminations["robot1"] or self.terminations["robot2"]
         if current_distance < prev_distance:
             reward += 1 # to reward being closer to the ball
         else:
@@ -261,12 +261,12 @@ AssertionError
         
         reward -=1  #for not scoring a goal
 
-        if ball[1] < -1.0 and not self.terminated:
+        if ball[1] < -1.0 and not terminated:
             reward = -100
-            self.terminated = True
-        elif ball[1] > 1.0 and not self.terminated:
+            self.terminations = {"robot1": True, "robot2": True}
+        elif ball[1] > 1.0 and not terminated:
             reward = 100
-            self.terminated = True
+            self.terminations = {"robot1": True, "robot2": True}
 
         return reward
         """ robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
@@ -276,8 +276,8 @@ AssertionError
     
     def reset(self, *, seed=None, options = None):
         self.t = 0
-        self.terminated = False
-        self.truncated = False
+        self.terminations = {"robot1": False, "robot2": False}
+        self.truncations = {"robot1": False, "robot2": False}
         self.ball_position = np.array([0, 0], float)
         self.robot1_reward = 0
         self.robot1_reward = 0
