@@ -25,6 +25,10 @@ class RobomasterSoccerEnv(ParallelEnv):
             "robot1": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64),
             "robot2": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64)
         }
+        self._action_spaces = {
+            "robot1": spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), dtype=np.float32),
+            "robot2": spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), dtype=np.float32)
+        }
 
         self.possible_agents = self.agents[:]
         self.node = Node("Robomaster_Soccer_env")
@@ -109,12 +113,11 @@ class RobomasterSoccerEnv(ParallelEnv):
     def observation_space(self, agent):
         return self._observation_spaces[agent]
 
+
+    @lru_cache(maxsize=None)
     def action_space(self, agent):
-        return spaces.Box(
-            low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),
-            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
-            dtype=np.float32
-        )
+        return self._action_spaces[agent]
+
 
     def robot1_odom_callback(self, msg):
         self.robot1_odom = [msg.pose.pose.position.x, msg.pose.pose.position.y,
