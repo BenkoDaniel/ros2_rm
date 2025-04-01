@@ -188,8 +188,17 @@ class RobomasterSoccerEnv(ParallelEnv):
         #    self.node.get_logger().info("/gazebo/pause_physics service call failed")
 
             
-        self.robot1_reward = self.count_reward(self.robot1_odom, self.ball_position, self.prev_ball_position)
-        self.robot2_reward = self.count_reward(self.robot2_odom, self.ball_position, self.prev_ball_position)
+        if self.ball_position[1] > 1.0:
+            self.robot1_reward = 100
+            self.robot2_reward = -100
+            self.terminations = {"robot1": True, "robot2": True}
+        elif self.ball_position[1] < -1.0:
+            self.robot1_reward = -100
+            self.robot2_reward = 100
+            self.terminations = {"robot1": True, "robot2": True}
+        else:
+            self.robot1_reward = self.count_reward_robot1(self.robot1_odom, self.ball_position, self.prev_ball_position)
+            self.robot2_reward = self.count_reward_robot2(self.robot2_odom, self.ball_position, self.prev_ball_position)
 
         self.rewards = {
             "robot1": self.robot1_reward,
@@ -201,7 +210,6 @@ class RobomasterSoccerEnv(ParallelEnv):
                 "robot1": True,
                 "robot2": True
             }
-
 
         self.robot1_observation = np.array([
             self.robot1_odom[0], #own odom
@@ -242,12 +250,11 @@ class RobomasterSoccerEnv(ParallelEnv):
 
 
 
-    def count_reward(self, robot_odom, ball, prev_ball):
+    def count_reward_robot1(self, robot_odom, ball, prev_ball):
         reward = 0
         robot_coord = np.array([robot_odom[0], robot_odom[1]])
         prev_distance = np.linalg.norm(prev_ball - robot_coord)
         current_distance = np.linalg.norm(ball - robot_coord)
-        terminated = self.terminations["robot1"] or self.terminations["robot2"]
         if current_distance < prev_distance:
             reward += 1 # to reward being closer to the ball
         else:
@@ -263,19 +270,30 @@ class RobomasterSoccerEnv(ParallelEnv):
             reward += -5
         
         reward -=1  #for not scoring a goal
-
-        if ball[1] < -1.0 and not terminated:
-            reward = -100
-            self.terminations = {"robot1": True, "robot2": True}
-        elif ball[1] > 1.0 and not terminated:
-            reward = 100
-            self.terminations = {"robot1": True, "robot2": True}
-
         return reward
-        """ robot1_coord = np.array([robot1_odom[0], robot1_odom[1]])
-        eucl_dist_robot1 = np.linalg.norm(robot1_coord - ball)
-        reward = (0.5-float(eucl_dist_robot1))*10 + ball[1]*100   #my goal is to give more reward if it ends up closer to the ball, or give more reward, if it moves the ball closer to the goal
-        return reward """  
+        
+        
+    def count_reward_robot2(self, robot_odom, ball, prev_ball):
+        reward = 0
+        robot_coord = np.array([robot_odom[0], robot_odom[1]])
+        prev_distance = np.linalg.norm(prev_ball - robot_coord)
+        current_distance = np.linalg.norm(ball - robot_coord)
+        if current_distance < prev_distance:
+            reward += 1 # to reward being closer to the ball
+        else:
+            reward += -1
+
+        if abs(robot_coord[0]) > 1:
+            reward -= 10 #punish being outside the playground
+
+        ball_direction = ball[1] - prev_ball[1]
+        if ball_direction < 0:
+            reward += 5  #to reward kicking the ball in the right direction
+        else:
+            reward += -5
+        
+        reward -=1  #for not scoring a goal
+        return reward  
     
     def reset(self, *, seed=None, options = None):
         self.t = 0
