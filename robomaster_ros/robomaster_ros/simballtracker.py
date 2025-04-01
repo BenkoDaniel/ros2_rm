@@ -31,7 +31,7 @@ class BallTrackerSim(Node):
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             im_with_ballmarker, ball_x, ball_y = self.find_ball(cv_image)
 
-            cv2.imshow("Camera", im_with_ballmarker)
+            #cv2.imshow("Camera", im_with_ballmarker)
             cv2.waitKey(1)
             point = Point()
             rows = float(cv_image.shape[0])

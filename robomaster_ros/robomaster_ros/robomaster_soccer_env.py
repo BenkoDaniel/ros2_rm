@@ -20,6 +20,8 @@ class RobomasterSoccerEnv(ParallelEnv):
     def __init__(self):
         rclpy.init()
         super(RobomasterSoccerEnv, self).__init__()
+        self.metadata = {'render.modes': ['human']}
+        self.render_mode = "human"
         self.agents = ["robot1", "robot2"]
         self._observation_spaces = {
             "robot1": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64),
@@ -189,12 +191,12 @@ class RobomasterSoccerEnv(ParallelEnv):
 
             
         if self.ball_position[1] > 1.0:
-            self.robot1_reward = 100
-            self.robot2_reward = -100
+            self.robot1_reward = 200
+            self.robot2_reward = -200
             self.terminations = {"robot1": True, "robot2": True}
         elif self.ball_position[1] < -1.0:
-            self.robot1_reward = -100
-            self.robot2_reward = 100
+            self.robot1_reward = -200
+            self.robot2_reward = 200
             self.terminations = {"robot1": True, "robot2": True}
         else:
             self.robot1_reward = self.count_reward_robot1(self.robot1_odom, self.ball_position, self.prev_ball_position)
