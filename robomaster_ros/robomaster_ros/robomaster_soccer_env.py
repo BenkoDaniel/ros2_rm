@@ -262,7 +262,7 @@ class RobomasterSoccerEnv(ParallelEnv):
         else:
             reward += -1
 
-        if abs(robot_coord[0]) > 1:
+        if abs(robot_coord[0]) < -1:
             reward -= 10 #punish being outside the playground
 
         ball_direction = ball[1] - prev_ball[1]

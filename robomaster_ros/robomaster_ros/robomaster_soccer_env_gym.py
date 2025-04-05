@@ -7,40 +7,50 @@ from geometry_msgs.msg import Twist, Point
 from nav_msgs.msg import Odometry
 import numpy as np
 from gymnasium import spaces
-from pettingzoo.utils import ParallelEnv
-from gazebo_msgs.msg import ModelState, EntityState, ModelStates, LinkStates
+from gazebo_msgs.msg import EntityState, ModelStates
 from gazebo_msgs.srv import SetEntityState
 from std_srvs.srv import Empty
 from functools import lru_cache
 
 
-class RobomasterSoccerEnv(gymnasium.Env):
+class RobomasterSoccerEnvGym(gymnasium.Env):
     '''Custom Environment that follows the pettingzoo interface'''
 
     def __init__(self):
         rclpy.init()
-        super(RobomasterSoccerEnv, self).__init__()
+        super(RobomasterSoccerEnvGym, self).__init__()
         self.metadata = {'render.modes': ['human']}
         self.render_mode = "human"
         self.agents = ["robot1", "robot2"]
-        self._observation_spaces = {
-            "robot1": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64),
-            "robot2": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64)
-        }
-        self._action_spaces = {
-            "robot1": spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), dtype=np.float32),
-            "robot2": spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), dtype=np.float32)
-        }
-
         self.possible_agents = self.agents[:]
-        self.node = Node("Robomaster_Soccer_env")
 
+        self.robot1_obs_space = spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64)
+        self.robot2_obs_space = spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64)
+        self.observation_space = spaces.Dict({
+            "robot1": self.robot1_obs_space,
+            "robot2": self.robot2_obs_space   
+        })
         
+        self.robot1_act_space = spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), dtype=np.float32)
+        self.robot2_act_space = spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), dtype=np.float32)
+        self.action_space = spaces.Box(
+            low=np.concatenate([
+                self.robot1_act_space.low,
+                self.robot2_act_space.low
+            ]),
+            high=np.concatenate([
+                self.robot1_act_space.high,
+                self.robot2_act_space.high
+            ]),
+            dtype=np.float32
+        )
+
+        self.node = Node("Robomaster_Soccer_env")
         self.set_state = self.node.create_client(SetEntityState, "/gazebo/set_entity_state")
         self.pause = self.node.create_client(Empty, "/pause_physics")
         self.unpause = self.node.create_client(Empty, "/unpause_physics")
         self.req = Empty.Request
-
+        
         self.robot1_vel_publisher = self.node.create_publisher(Twist, '/robot1/cmd_vel_original', 10)
         self.robot2_vel_publisher = self.node.create_publisher(Twist, '/robot2/cmd_vel_original', 10)
 
@@ -58,7 +68,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.set_robot1_state.pose.position.z = 0.0
         self.set_robot1_state.pose.orientation.z = 1.57
         self.robot1_state = SetEntityState.Request()
-
+        
         self.set_robot2_state = EntityState()
         self.set_robot2_state.name = "robomaster_2"
         self.set_robot2_state.pose.position.x = 0.0
@@ -93,12 +103,12 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.robot2_ball_relative = np.zeros(2)  # [dx, dy]
         self.robot1_observation = np.zeros(12)
         self.robot2_observation = np.zeros(12)
-        self.observations = None
-        self.terminations = {"robot1": False, "robot2": False}
-        self.truncations = {"robot1": False, "robot2": False}
+
+        self.terminated = False
+        self.truncated = False
         self.robot1_reward = 0
         self.robot2_reward = 0
-        self.rewards = None
+        self.rewards = []
 
         self.infos = {
             "robot1": {
@@ -110,15 +120,6 @@ class RobomasterSoccerEnv(gymnasium.Env):
                 "individual_reward": self.robot2_reward,
             }
         }
-
-    @lru_cache(maxsize=None)
-    def observation_space(self, agent):
-        return self._observation_spaces[agent]
-
-
-    @lru_cache(maxsize=None)
-    def action_space(self, agent):
-        return self._action_spaces[agent]
 
 
     def robot1_odom_callback(self, msg):
@@ -153,14 +154,14 @@ class RobomasterSoccerEnv(gymnasium.Env):
         self.ball_position[1] = data.pose[ball_id].position.y
 
 
-    def step(self, actions):
+    def step(self, action):
         self.t += 1
 
         robot1_command = Twist()
         robot2_command = Twist()
 
-        action1 = actions["robot1"]
-        action2 = actions["robot2"]
+        action1 = action[:6]
+        action2 = action[6:]
 
         robot1_command.linear.x = float(action1[0])
         robot1_command.linear.y = float(action1[1])
@@ -193,25 +194,21 @@ class RobomasterSoccerEnv(gymnasium.Env):
         if self.ball_position[1] > 1.0:
             self.robot1_reward = 200
             self.robot2_reward = -200
-            self.terminations = {"robot1": True, "robot2": True}
+            self.terminated = True
         elif self.ball_position[1] < -1.0:
             self.robot1_reward = -200
             self.robot2_reward = 200
-            self.terminations = {"robot1": True, "robot2": True}
+            self.terminated = True
         else:
             self.robot1_reward = self.count_reward_robot1(self.robot1_odom, self.ball_position, self.prev_ball_position)
             self.robot2_reward = self.count_reward_robot2(self.robot2_odom, self.ball_position, self.prev_ball_position)
 
-        self.rewards = {
-            "robot1": self.robot1_reward,
-            "robot2": self.robot2_reward
-        }
+        self.rewards = []
+        self.rewards.append(self.robot1_reward)
+        self.rewards.append(self.robot2_reward)
             
         if self.t >= self.t_limit:
-            self.truncations = {
-                "robot1": True,
-                "robot2": True
-            }
+            self.truncated = True
 
         self.robot1_observation = np.array([
             self.robot1_odom[0], #own odom
@@ -245,10 +242,11 @@ class RobomasterSoccerEnv(gymnasium.Env):
 
         self.observations = {
             "robot1": self.robot1_observation,
-            "robot2": self.robot2_observation,
+            "robot2": self.robot2_observation
         }
+        self.rewards = self.robot1_reward + self.robot2_reward
 
-        return self.observations, self.rewards, self.terminations, self.truncations, self.infos
+        return self.observations, self.rewards, self.terminated, self.truncated, self.infos
 
 
 
@@ -299,12 +297,12 @@ class RobomasterSoccerEnv(gymnasium.Env):
     
     def reset(self, *, seed=None, options = None):
         self.t = 0
-        self.terminations = {"robot1": False, "robot2": False}
-        self.truncations = {"robot1": False, "robot2": False}
+        self.terminated = False
+        self.truncated = False
         self.ball_position = np.array([0, 0], float)
         self.robot1_reward = 0
         self.robot1_reward = 0
-        self.rewards = None
+        self.rewards = []
         self.prev_ball_position = np.array([0, 0], float)
 
         self.robot1_state = SetEntityState.Request()
@@ -337,9 +335,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
         except:
             self.node.get_logger().error(f"Reset world service call failed: {str(e)}")
             return None
-
-        self.observation = np.zeros(12)
-        
+       
         rclpy.spin_once(self.node, timeout_sec=1)
 
         self.robot1_observation = np.array([
@@ -374,7 +370,7 @@ class RobomasterSoccerEnv(gymnasium.Env):
 
         self.observations = {
             "robot1": self.robot1_observation,
-            "robot2": self.robot2_observation,
+            "robot2": self.robot2_observation
         }
 
         return self.observations, self.infos  #reward, done, can't be included
