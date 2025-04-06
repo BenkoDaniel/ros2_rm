@@ -24,8 +24,8 @@ class RobomasterSoccerEnv(ParallelEnv):
         self.render_mode = "human"
         self.agents = ["robot1", "robot2"]
         self._observation_spaces = {
-            "robot1": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64),
-            "robot2": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float64)
+            "robot1": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32),
+            "robot2": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32)
         }
         self._action_spaces = {
             "robot1": spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), dtype=np.float32),

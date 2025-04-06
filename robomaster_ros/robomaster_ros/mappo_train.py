@@ -150,17 +150,17 @@ def train_mappo():
                     log_probs[agent] = 0.0
                     all_obs.append(np.zeros(obs_dim))
 
-            value_input = np.concatenate(all_obs)
-            value = critic(torch.tensor(value_input, dtype=torch.float32)).item()
+            value_input = torch.tensor(np.concatenate(all_obs), dtype=torch.float32)
+            value = critic(value_input).item()
             value_buffer.append(value)
 
             next_obs, rewards, terminations, truncations, infos = env.step(actions)
             dones = terminations | truncations
 
             for agent in agents:
-                obs_buffer[agent].append(obs[agent])
-                action_buffer[agent].append(actions[agent])
-                logprob_buffer[agent].append(log_probs[agent])
+                obs_buffer[agent].append(obs[agent].copy())  # Use copy() here
+                action_buffer[agent].append(actions[agent].copy())
+                logprob_buffer[agent].append(log_probs[agent].clone().detach())
                 reward_buffer[agent].append(rewards[agent])
                 done_buffer[agent].append(dones[agent])
 
@@ -170,8 +170,8 @@ def train_mappo():
                 break
 
         all_obs = [obs[agent] if not done[agent] else np.zeros(obs_dim) for agent in agents]
-        value_input = np.concatenate(all_obs)
-        final_value = critic(torch.tensor(value_input, dtype=torch.float32)).item()
+        value_input = torch.tensor(np.concatenate(all_obs), dtype=torch.float32)
+        final_value = critic(value_input).item()
         value_buffer.append(final_value)
 
         rewards = np.mean([reward_buffer[agent] for agent in agents], axis=0)
@@ -194,14 +194,14 @@ def train_mappo():
             for t in range(len(reward_buffer[agent])):
                 obs_t = torch.tensor(obs_buffer[agent][t], dtype=torch.float32)
                 action_t = torch.tensor(action_buffer[agent][t], dtype=torch.float32)
-                old_logprob = torch.tensor(logprob_buffer[agent][t], dtype=torch.float32).clone().detach()
+                old_logprob = logprob_buffer[agent][t].clone().detach().requires_grad_(True)
 
                 logits = actors[agent](obs_t)
                 dist = torch.distributions.Normal(logits, 1.0)
                 logprob = dist.log_prob(action_t).sum()
                 ratio = torch.exp(logprob - old_logprob)
 
-                advantage = torch.tensor(advantages[t], dtype=torch.float32).clone().detach()
+                advantage = advantages[t].clone().detach().requires_grad_(True)
                 clip_adv = torch.clamp(ratio, 0.8, 1.2) * advantage
                 actor_loss = -torch.min(ratio * advantage, clip_adv)
 
@@ -219,7 +219,7 @@ def train_mappo():
                 for t in range(len(reward_buffer[agent])):
                     obs_t = torch.tensor(obs_buffer[agent][t], dtype=torch.float32)
                     action_t = torch.tensor(action_buffer[agent][t], dtype=torch.float32)
-                    old_logprob = logprob_buffer[agent][t]
+                    old_logprob = logprob_buffer[agent][t].clone().detach().requires_grad_(True)
 
                     logits = actors[agent](obs_t)
                     dist = torch.distributions.Normal(logits, 1.0)
