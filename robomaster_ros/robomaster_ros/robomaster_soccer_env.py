@@ -28,8 +28,8 @@ class RobomasterSoccerEnv(ParallelEnv):
             "robot2": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32)
         }
         self._action_spaces = {
-            "robot1": spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), dtype=np.float32),
-            "robot2": spaces.Box(low=np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), dtype=np.float32)
+            "robot1": spaces.Box(low=np.array([-1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0]), dtype=np.float32),
+            "robot2": spaces.Box(low=np.array([-1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0]), dtype=np.float32)
         }
 
         self.possible_agents = self.agents[:]

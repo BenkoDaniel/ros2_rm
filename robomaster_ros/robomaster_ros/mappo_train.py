@@ -155,6 +155,9 @@ def train_mappo():
             value_buffer.append(value)
 
             next_obs, rewards, terminations, truncations, infos = env.step(actions)
+            if not any(rewards.values()):  # No rewards received
+                obs, info = env.reset()
+                continue
             dones = terminations | truncations
 
             for agent in agents:
@@ -207,7 +210,8 @@ def train_mappo():
 
                 total_loss += actor_loss
 
-            total_loss.backward(retain_graph=True)
+            total_loss.backward()
+            torch.nn.utils.clip_grad_norm_(actors[agent].parameters(), max_norm=0.5)
             optimizers[agent].step()
 
 
@@ -232,6 +236,14 @@ def train_mappo():
                     actor_loss.backward(retain_graph=True)
                 optimizers[agent].step()
 
+
+        for param in critic.parameters():
+            if torch.isnan(param).any():
+                raise ValueError("Critic has NaN parameters!")
+        for agent in actors:
+            for param in actors[agent].parameters():
+                if torch.isnan(param).any():
+                    raise ValueError(f"Actor {agent} has NaN parameters!")
         # Save models
         if epoch % save_interval == 0:
             save_models(current_run_dir, epoch, actors, critic)
