@@ -81,7 +81,7 @@ class RobomasterSoccerEnv(ParallelEnv):
         self.ball_position = np.array([0, 0], float)
         self.prev_ball_position = np.array([0, 0], float)
         self.t = 0
-        self.t_limit = 6000
+        self.t_limit = 600
 
         # robot1_odom (4),  robot2_odom (4)
         # robot1_ball_dx, robot1_ball_dy,

@@ -3,7 +3,7 @@ import torch
 import os
 import torch.nn as nn
 import torch.optim as optim
-from torch.distributions import Normal, Categorical
+from torch.distributions import Normal
 from collections import deque
 import random
 from robomaster_soccer_env import RobomasterSoccerEnv
@@ -83,10 +83,11 @@ class ActorCritic(nn.Module):
     
     def evaluate(self, x, action):
         hidden = self.forward(x)
+
         mean = self.actor_mean(hidden)
         log_std = self.actor_logstd(hidden)
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
-        std = torch.exp(log_std)
+        std = torch.exp(log_std) + 1e-6
             
         dist = Normal(mean, std)
         log_prob = dist.log_prob(action).sum(-1)  # Sum over action dimensions
@@ -103,6 +104,16 @@ class MAPPO:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.policies = [ActorCritic(obs_dim, action_dim, action_space_type) for _ in range(n_agents)]
         self.old_policies = [ActorCritic(obs_dim, action_dim, action_space_type) for _ in range(n_agents)]
+
+        for policy in self.policies:
+            for layer in policy.shared_layers:
+                if isinstance(layer, nn.Linear):
+                    nn.init.orthogonal_(layer.weight, gain=np.sqrt(2))
+                    layer.bias.data.zero_()
+            nn.init.orthogonal_(policy.actor_mean.weight, gain=0.01)
+            policy.actor_mean.bias.data.zero_()
+            nn.init.orthogonal_(policy.actor_logstd.weight, gain=0.01)
+            policy.actor_logstd.bias.data.zero_()
         
         # Initialize old policies with same parameters
         for new_policy, old_policy in zip(self.policies, self.old_policies):
@@ -254,7 +265,6 @@ def train():
                     if episode < 100:  # Add noise for first 100 episodes
                         action += np.random.normal(0, 0.2, size=action.shape)  # Adjust 0.2 as needed
                         action = np.clip(action, action_low, action_high)
-                    print(action)
                     actions[agent] = [float(x) for x in action]
                     log_probs[agent] = log_prob
                 
