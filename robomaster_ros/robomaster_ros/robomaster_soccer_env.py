@@ -81,7 +81,7 @@ class RobomasterSoccerEnv(ParallelEnv):
         self.ball_position = np.array([0, 0], float)
         self.prev_ball_position = np.array([0, 0], float)
         self.t = 0
-        self.t_limit = 600
+        self.t_limit = 1000
 
         # robot1_odom (4),  robot2_odom (4)
         # robot1_ball_dx, robot1_ball_dy,
@@ -211,6 +211,10 @@ class RobomasterSoccerEnv(ParallelEnv):
             self.truncations = {
                 "robot1": True,
                 "robot2": True
+            }
+            self.rewards = {
+                "robot1": 0,
+                "robot2": 0
             }
 
         self.robot1_observation = np.array([

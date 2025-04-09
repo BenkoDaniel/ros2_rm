@@ -1,9 +1,12 @@
 import numpy as np
 import torch
+import time
+from datetime import datetime
 import os
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions import Normal
+from torch.utils.tensorboard import SummaryWriter
 from collections import deque
 import random
 from robomaster_soccer_env import RobomasterSoccerEnv
@@ -101,6 +104,9 @@ class MAPPO:
     def __init__(self, n_agents, obs_dim, action_dim, action_space_type):
         self.n_agents = n_agents
         self.action_space_type = action_space_type
+        self.run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.writer = SummaryWriter(f'logs/{self.run_id}')
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.policies = [ActorCritic(obs_dim, action_dim, action_space_type) for _ in range(n_agents)]
         self.old_policies = [ActorCritic(obs_dim, action_dim, action_space_type) for _ in range(n_agents)]
@@ -245,16 +251,52 @@ class MAPPO:
                 torch.nn.utils.clip_grad_norm_(self.policies[agent_idx].parameters(), max_norm=1.0)
                 self.optimizers[agent_idx].step()
 
+    def load_models(self, episode=None):
+        """Load all agent models"""
+        suffix = f"_ep_{episode}" if episode is not None else "_final"
+        try:
+            for i in range(self.n_agents):
+                model_path = f'models/agent_{i}{suffix}.pth'
+                if os.path.exists(model_path):
+                    self.policies[i].load_state_dict(torch.load(model_path))
+                    self.old_policies[i].load_state_dict(torch.load(model_path))
+                    print(f"Loaded model for agent {i} from {model_path}")
+                else:
+                    print(f"No saved model found for agent {i} at {model_path}")
+            return True
+        except Exception as e:
+            print(f"Error loading models: {e}")
+            return False
+    
+    def log_metrics(self, episode, rewards, timesteps):
+        """Log metrics to TensorBoard"""
+        # Log rewards
+        total_reward = sum(rewards.values())
+        self.writer.add_scalar('Reward/Total', total_reward, episode)
+        for agent, reward in rewards.items():
+            self.writer.add_scalar(f'Reward/{agent}', reward, episode)
+        
+        # Log training statistics
+        if episode > 0:
+            self.writer.add_scalar('Time/Steps_per_second', timesteps, episode)
+
 # Training loop
-def train():
+def train(reload=True, resume_episode=None):
     mappo = MAPPO(n_agents, obs_dim, action_dim, action_space_type)
     episode_rewards = []
+
+    if reload:
+        if not mappo.load_models(resume_episode):
+            print("Failed to load models, starting from scratch")
     
     try:
         for episode in range(1000):
             obs, info = env.reset()
+            time.sleep(1)
             episode_reward = 0
+            individual_rewards = { "robot1": 0, "robot2": 0 }
             done = False
+            timesteps = 0
             
             while not done:
                 actions = {}
@@ -270,6 +312,8 @@ def train():
                 
                 
                 next_obs, rewards, terminations, truncations, infos = env.step(actions)
+                individual_rewards["robot1"] += rewards["robot1"]
+                individual_rewards["robot2"] += rewards["robot2"] 
                 dones = {
                     "robot1": terminations["robot1"] or terminations["robot1"],
                     "robot2": terminations["robot2"] or terminations["robot2"]
@@ -291,13 +335,15 @@ def train():
                 
                 obs = next_obs
                 episode_reward += sum(rewards.values())
+                timesteps += 1
                 
                 if len(mappo.buffer) >= BATCH_SIZE and len(mappo.buffer) % UPDATE_INTERVAL == 0:
                     mappo.update_old_policies()
                     mappo.update()
             
             episode_rewards.append(episode_reward)
-            print(f"Episode {episode}, Reward: {episode_reward}")
+            mappo.log_metrics(episode, individual_rewards, timesteps)
+            print(f"Episode {episode}, Reward: {individual_rewards}, Timesteps: {timesteps}")
             
             if (episode + 1) % 10 == 0:
                 if not os.path.exists('models'):
@@ -311,7 +357,6 @@ def train():
             os.makedirs('models')
         for i in range(n_agents):
             torch.save(mappo.policies[i].state_dict(), f'models/agent_{i}_final.pth')
-    
     finally:
         env.close()
 
