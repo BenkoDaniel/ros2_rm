@@ -191,12 +191,12 @@ class RobomasterSoccerEnv(ParallelEnv):
 
             
         if self.ball_position[1] > 1.0:
-            self.robot1_reward = 200
+            self.robot1_reward = 1000
             self.robot2_reward = -200
             self.terminations = {"robot1": True, "robot2": True}
         elif self.ball_position[1] < -1.0:
             self.robot1_reward = -200
-            self.robot2_reward = 200
+            self.robot2_reward = 1000
             self.terminations = {"robot1": True, "robot2": True}
         else:
             self.robot1_reward = self.count_reward_robot1(self.robot1_odom, self.ball_position, self.prev_ball_position)
