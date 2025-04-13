@@ -163,7 +163,7 @@ def generate_launch_description():
             robot1_gimbal_command_converter,
             robot1_vel_converter,
             robot1_simballtracker,
-            #robot1_simballfollower
+            robot1_simballfollower
         ]),
         RegisterEventHandler(
             OnProcessExit(
@@ -178,7 +178,7 @@ def generate_launch_description():
                         robot2_gimbal_command_converter,
                         robot2_vel_converter,
                         robot2_simballtracker,
-                        #robot2_simballfollower
+                        robot2_simballfollower
                     ])
                 ]
             )
