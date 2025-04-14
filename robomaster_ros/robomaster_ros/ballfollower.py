@@ -36,10 +36,10 @@ class BallFollower(Node):
         if self.datachecker == 1:
             gimbalmsg.yaw_speed = self.target_x
             gimbalmsg.pitch_speed = self.target_y
-        elif self.datachecker == 1 and self.target_x == 0:
-            self.get_logget().info('Target found')
-        else:
-            self.get_logger().info('Target lost')
+        #elif self.datachecker == 1 and self.target_x == 0:
+        #    self.get_logget().info('Target found')
+        #else:
+        #    self.get_logger().info('Target lost')
             #gimbalmsg.yaw_speed = self.lookaround_speed
         self.publisher_.publish(gimbalmsg)
 
