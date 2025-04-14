@@ -24,8 +24,8 @@ class RobomasterSoccerEnv(ParallelEnv):
         self.render_mode = "human"
         self.agents = ["robot1", "robot2"]
         self._observation_spaces = {
-            "robot1": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32),
-            "robot2": spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32)
+            "robot1": spaces.Box(low=-np.inf, high=np.inf, shape=(10,), dtype=np.float32),
+            "robot2": spaces.Box(low=-np.inf, high=np.inf, shape=(10,), dtype=np.float32)
         }
         self._action_spaces = {
             "robot1": spaces.Box(low=np.array([-1.0, -1.0, -1.0]),high=np.array([1.0, 1.0, 1.0]), dtype=np.float32),
@@ -85,14 +85,13 @@ class RobomasterSoccerEnv(ParallelEnv):
 
         # robot1_odom (4),  robot2_odom (4)
         # robot1_ball_dx, robot1_ball_dy,
-        # ball_x, ball_y  - from gazebo
 
         self.robot1_odom = np.zeros(4)  # [x, y, vx, vy]
         self.robot2_odom = np.zeros(4)  # [x, y, vx, vy]
         self.robot1_ball_relative = np.zeros(2)  # [dx, dy]
         self.robot2_ball_relative = np.zeros(2)  # [dx, dy]
-        self.robot1_observation = np.zeros(12)
-        self.robot2_observation = np.zeros(12)
+        self.robot1_observation = np.zeros(10)
+        self.robot2_observation = np.zeros(10)
         self.observations = None
         self.terminations = {"robot1": False, "robot2": False}
         self.truncations = {"robot1": False, "robot2": False}
@@ -175,21 +174,6 @@ class RobomasterSoccerEnv(ParallelEnv):
 
         rclpy.spin_once(self.node, timeout_sec=1)
 
-        #while not self.unpause.wait_for_service(timeout_sec=1.0):
-        #    self.node.get_logger().info('service not available, waiting again...')
-        #try:
-        #    self.unpause.call_async(Empty.Request())
-        #except:
-        #    self.node.get_logger().info("/unpause_physics service call failed")
-
-        #while not self.pause.wait_for_service(timeout_sec=1.0):
-        #    self.node.get_logger().info('service not available, waiting again...')
-        #try:
-        #    self.pause.call_async(Empty.Request())
-        #except:
-        #    self.node.get_logger().info("/gazebo/pause_physics service call failed")
-
-            
         if self.ball_position[1] > 1.0:
             self.robot1_reward = 500
             self.robot2_reward = -200
@@ -228,8 +212,6 @@ class RobomasterSoccerEnv(ParallelEnv):
             self.robot2_odom[3],
             self.robot1_ball_relative[0],
             self.robot1_ball_relative[1],
-            self.ball_position[0],
-            self.ball_position[1]
         ])
 
         self.robot2_observation = np.array([
@@ -243,8 +225,6 @@ class RobomasterSoccerEnv(ParallelEnv):
             self.robot1_odom[3],
             self.robot2_ball_relative[0],
             self.robot2_ball_relative[1],
-            self.ball_position[0],
-            self.ball_position[1]
         ])
 
         self.observations = {
@@ -329,9 +309,14 @@ class RobomasterSoccerEnv(ParallelEnv):
         except:
             print("/gazebo/reset_simulation service call failed")
 
-        self.set_sphere_state.twist.linear.x = 0.6*(random.random()-0.5)
-        self.set_sphere_state.twist.linear.y = -1*(0.1 + 0.5*random.random())
-        self.set_sphere_state.twist.linear.z = 0.0
+        if random.random() < 0.5: #throw the ball in the direction of robot1
+            self.set_sphere_state.twist.linear.x = 0.6*(random.random()-0.5)
+            self.set_sphere_state.twist.linear.y = -1*(0.1 + 0.5*random.random())
+            self.set_sphere_state.twist.linear.z = 0.0
+        else: #throw the ball in the direction of robot2
+            self.set_sphere_state.twist.linear.x = 0.6*(random.random()-0.5)
+            self.set_sphere_state.twist.linear.y = (0.1 + 0.5*random.random())
+            self.set_sphere_state.twist.linear.z = 0.0
 
         self.sphere_state._state = self.set_sphere_state
         while not self.set_state.wait_for_service(timeout_sec=1.0):
@@ -357,8 +342,6 @@ class RobomasterSoccerEnv(ParallelEnv):
             self.robot2_odom[3],
             self.robot1_ball_relative[0],
             self.robot1_ball_relative[1],
-            self.ball_position[0],
-            self.ball_position[1]
         ])
 
         self.robot2_observation = np.array([
@@ -372,8 +355,6 @@ class RobomasterSoccerEnv(ParallelEnv):
             self.robot1_odom[3],
             self.robot2_ball_relative[0],
             self.robot2_ball_relative[1],
-            self.ball_position[0],
-            self.ball_position[1]
         ])
 
         self.observations = {

@@ -358,7 +358,6 @@ def train(reload=True, resume_episode=None):
         for i in range(n_agents):
             torch.save(mappo.policies[i].state_dict(), f'models/agent_{i}_final.pth')
     finally:
-        env.stop()
         env.close()
 
 if __name__ == "__main__":
