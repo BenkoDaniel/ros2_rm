@@ -17,7 +17,6 @@ class BallTrackerSim(Node):
         cam_topic_name = self.get_parameter('camera_number').get_parameter_value().string_value + "/image_raw"
 
         self.bridge = CvBridge()
-        self.camera = None
         self.subscripiton = self.create_subscription(
             Image,
             cam_topic_name,

@@ -247,7 +247,7 @@ class RobomasterSoccerEnv(ParallelEnv):
             reward += -1
 
         if abs(robot_coord[0]) < -1:
-            reward -= 10 #punish being outside the playground
+            reward -= 100 #punish being outside the playground
 
         ball_direction = ball[1] - prev_ball[1]
         if ball_direction > 0:
@@ -270,7 +270,7 @@ class RobomasterSoccerEnv(ParallelEnv):
             reward += -1
 
         if abs(robot_coord[0]) > 1:
-            reward -= 10 #punish being outside the playground
+            reward -= 100 #punish being outside the playground
 
         ball_direction = ball[1] - prev_ball[1]
         if ball_direction < 0:
@@ -310,12 +310,12 @@ class RobomasterSoccerEnv(ParallelEnv):
             print("/gazebo/reset_simulation service call failed")
 
         if random.random() < 0.5: #throw the ball in the direction of robot1
-            self.set_sphere_state.twist.linear.x = 0.6*(random.random()-0.5)
-            self.set_sphere_state.twist.linear.y = -1*(0.1 + 0.5*random.random())
+            self.set_sphere_state.twist.linear.x = random.uniform(-0.3, 0.3)
+            self.set_sphere_state.twist.linear.y = -1*random.uniform(0.1, 0.6)
             self.set_sphere_state.twist.linear.z = 0.0
         else: #throw the ball in the direction of robot2
-            self.set_sphere_state.twist.linear.x = 0.6*(random.random()-0.5)
-            self.set_sphere_state.twist.linear.y = (0.1 + 0.5*random.random())
+            self.set_sphere_state.twist.linear.x = random.uniform(-0.3, 0.3)
+            self.set_sphere_state.twist.linear.y = random.uniform(0.1, 0.6)
             self.set_sphere_state.twist.linear.z = 0.0
 
         self.sphere_state._state = self.set_sphere_state

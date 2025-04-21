@@ -13,7 +13,6 @@ class BallTracker(Node):
         super().__init__('Ball_tracker')
         self.bridge = CvBridge()
         self.yolomodel = torch.hub.load("ultralytics/yolov5", "yolov5s") #YOLOv5 Nano model: yolov5n
-        self.camera = None
         self.subscripiton = self.create_subscription(
             Image,
             '/camera/image_color',
