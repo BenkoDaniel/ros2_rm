@@ -14,7 +14,6 @@ class BallFollower(Node):
             self.cb_detectedball,
             10)
         self.publisher_ = self.create_publisher(GimbalCommand, "cmd_gimbal", 10)
-
         self.rcv_timeout_secs = 10
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -22,8 +21,6 @@ class BallFollower(Node):
         self.target_y = 0.0
         self.datachecker = 1
         self.lastrcvtime = time.time() - 10000
-        self.lookaround_speed = 0.2
-
 
     def cb_detectedball(self, msg):
         self.target_x = msg.x
@@ -36,11 +33,6 @@ class BallFollower(Node):
         if self.datachecker == 1:
             gimbalmsg.yaw_speed = self.target_x
             gimbalmsg.pitch_speed = self.target_y
-        #elif self.datachecker == 1 and self.target_x == 0:
-        #    self.get_logget().info('Target found')
-        #else:
-        #    self.get_logger().info('Target lost')
-            #gimbalmsg.yaw_speed = self.lookaround_speed
         self.publisher_.publish(gimbalmsg)
 
 
