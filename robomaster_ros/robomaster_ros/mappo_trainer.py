@@ -227,7 +227,6 @@ class MAPPO:
                 self.optimizers[agent_idx].step()
 
     def load_models(self, episode=None):
-        """Load all agent models"""
         suffix = f"_ep_{episode}" if episode is not None else "_final"
         try:
             for i in range(self.n_agents):
@@ -244,7 +243,6 @@ class MAPPO:
             return False
     
     def log_metrics(self, episode, rewards, timesteps):
-        """Log metrics to TensorBoard"""
         total_reward = sum(rewards.values())
         self.writer.add_scalar('Reward/Total', total_reward, episode)
         for agent, reward in rewards.items():
