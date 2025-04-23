@@ -11,7 +11,7 @@ from collections import deque
 import random
 from robomaster_soccer_env import RobomasterSoccerEnv
 
-# Environment setup
+
 def make_env():
     env = RobomasterSoccerEnv()
     return env
@@ -25,7 +25,6 @@ action_low = env.action_space(env.possible_agents[0]).low[0]
 
 n_agents = len(env.possible_agents)
 
-# Hyperparameters
 LR_ACTOR = 1e-5
 LR_CRITIC = 1e-5
 GAMMA = 0.99
@@ -39,24 +38,21 @@ ENTROPY_COEF = 0.1
 LOG_STD_MIN = -20
 LOG_STD_MAX = 2
 
-# Actor-Critic Network
 class ActorCritic(nn.Module):
     def __init__(self, obs_dim, action_dim, action_space_type):
         super(ActorCritic, self).__init__()
         self.action_space_type = action_space_type
         
-        # Shared layers
         self.shared_layers = nn.Sequential(
             nn.Linear(obs_dim, 64),
             nn.ReLU(),
             nn.Linear(64, 64),
             nn.ReLU()
         )
-        # Continuous action head
+
         self.actor_mean = nn.Linear(64, action_dim)
         self.actor_logstd = nn.Linear(64, action_dim)
         
-        # Critic head
         self.critic = nn.Linear(64, 1)
         
     def forward(self, x):
@@ -68,14 +64,11 @@ class ActorCritic(nn.Module):
         mean = self.actor_mean(hidden)
         log_std = self.actor_logstd(hidden)
         
-        # Enforce minimum exploration (NEW)
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
-        std = torch.exp(log_std) + 1e-3  # Add small epsilon
+        std = torch.exp(log_std) + 1e-3
         
         dist = Normal(mean, std)
         action = dist.sample()
-        
-        # Clip actions to valid range but keep gradients
         action = torch.tanh(action) * (action_high - action_low)/2 + (action_high + action_low)/2
         
         log_prob = dist.log_prob(action).sum(-1)
@@ -93,13 +86,12 @@ class ActorCritic(nn.Module):
         std = torch.exp(log_std) + 1e-6
             
         dist = Normal(mean, std)
-        log_prob = dist.log_prob(action).sum(-1)  # Sum over action dimensions
-        entropy = dist.entropy().sum(-1)  # Sum over action dimensions
-        value = self.critic(hidden).squeeze(-1)  # Remove extra dimension
+        log_prob = dist.log_prob(action).sum(-1)
+        entropy = dist.entropy().sum(-1)
+        value = self.critic(hidden).squeeze(-1)
         
         return log_prob, value, entropy
 
-# MAPPO Agent
 class MAPPO:
     def __init__(self, n_agents, obs_dim, action_dim, action_space_type):
         self.n_agents = n_agents
@@ -121,7 +113,6 @@ class MAPPO:
             nn.init.orthogonal_(policy.actor_logstd.weight, gain=0.01)
             policy.actor_logstd.bias.data.zero_()
         
-        # Initialize old policies with same parameters
         for new_policy, old_policy in zip(self.policies, self.old_policies):
             old_policy.load_state_dict(new_policy.state_dict())
         
@@ -154,26 +145,21 @@ class MAPPO:
         dones = np.asarray(dones)
         values = np.asarray(values)
         
-        # Initialize arrays
         advantages = np.zeros_like(rewards)
         returns = np.zeros_like(rewards)
         last_gae = 0.0
         
-        # Extend values with next_value for bootstrapping
         extended_values = np.append(values, next_value)
         
-        # Calculate advantages in reverse order
         for t in reversed(range(len(rewards))):
             delta = rewards[t] + GAMMA * (1 - dones[t]) * extended_values[t+1] - extended_values[t]
             last_gae = delta + GAMMA * LAMDA * (1 - dones[t]) * last_gae
             advantages[t] = last_gae
             returns[t] = advantages[t] + extended_values[t]
-        
-        # Convert to tensors and normalize advantages
+
         advantages = torch.as_tensor(advantages, dtype=torch.float32)
         returns = torch.as_tensor(returns, dtype=torch.float32)
         
-        # Normalize advantages
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         
         return returns, advantages
@@ -184,7 +170,6 @@ class MAPPO:
         
         batch = random.sample(self.buffer, BATCH_SIZE)
         
-        # Unpack the batch
         obs = torch.FloatTensor(np.array([t[0] for t in batch]))
         actions = torch.FloatTensor(np.array([t[1] for t in batch]))
         rewards = torch.FloatTensor(np.array([t[2] for t in batch]))
@@ -206,15 +191,12 @@ class MAPPO:
             agent_old_log_probs = old_log_probs[mask]
             
             with torch.no_grad():
-                # Get value estimates
                 _, old_values, _ = self.old_policies[agent_idx].evaluate(agent_obs, agent_actions)
                 old_values = old_values.cpu().numpy().flatten()
                 
-                # Get bootstrap value for last state
                 _, next_values, _ = self.old_policies[agent_idx].evaluate(agent_next_obs, agent_actions)
                 next_value = next_values[-1].item() if len(next_values) > 0 else 0
                 
-                # Compute returns and advantages
                 returns, advantages = self.compute_returns_and_advantages(
                     agent_rewards,
                     agent_dones,
@@ -222,30 +204,23 @@ class MAPPO:
                     next_value
                 )
             
-            # Convert to tensors if needed
             returns = returns.to(self.device)
             advantages = advantages.to(self.device)
             
-            # Optimize policy for K epochs
             for _ in range(K_EPOCHS):
                 log_probs, values, entropy = self.policies[agent_idx].evaluate(agent_obs, agent_actions)
                 
-                # Calculate policy loss - ensure we're using means for scalar outputs
                 ratios = torch.exp(log_probs - agent_old_log_probs)
                 surr1 = ratios * advantages
                 surr2 = torch.clamp(ratios, 1-EPS_CLIP, 1+EPS_CLIP) * advantages
                 actor_loss = -torch.min(surr1, surr2).mean()
                 
-                # Calculate value loss - ensure scalar output
                 critic_loss = 0.5 * nn.MSELoss()(values.squeeze(), returns).mean()
                 
-                # Calculate entropy - ensure scalar
                 entropy_loss = entropy.mean()
                 
-                # Total loss - scalar
                 loss = actor_loss + critic_loss - ENTROPY_COEF * entropy_loss
                 
-                # Update policy
                 self.optimizers[agent_idx].zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.policies[agent_idx].parameters(), max_norm=1.0)
@@ -270,17 +245,14 @@ class MAPPO:
     
     def log_metrics(self, episode, rewards, timesteps):
         """Log metrics to TensorBoard"""
-        # Log rewards
         total_reward = sum(rewards.values())
         self.writer.add_scalar('Reward/Total', total_reward, episode)
         for agent, reward in rewards.items():
             self.writer.add_scalar(f'Reward/{agent}', reward, episode)
         
-        # Log training statistics
         if episode > 0:
             self.writer.add_scalar('Time/Steps_per_second', timesteps, episode)
 
-# Training loop
 def train(reload=True, resume_episode=None):
     mappo = MAPPO(n_agents, obs_dim, action_dim, action_space_type)
     episode_rewards = []
@@ -304,8 +276,8 @@ def train(reload=True, resume_episode=None):
                 
                 for i, agent in enumerate(env.agents):
                     action, log_prob = mappo.act(obs[agent], i)
-                    if episode < 100:  # Add noise for first 100 episodes
-                        action += np.random.normal(0, 0.2, size=action.shape)  # Adjust 0.2 as needed
+                    if episode < 100:
+                        action += np.random.normal(0, 0.2, size=action.shape)
                         action = np.clip(action, action_low, action_high)
                     actions[agent] = [float(x) for x in action]
                     log_probs[agent] = log_prob
