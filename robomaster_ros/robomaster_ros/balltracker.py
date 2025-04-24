@@ -1,18 +1,17 @@
 import rclpy
-import torch
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Point
-#import ultralytics
+from ultralytics import YOLO
 
 class BallTracker(Node):
 
     def __init__(self):
         super().__init__('Ball_tracker')
         self.bridge = CvBridge()
-        self.yolomodel = torch.hub.load("ultralytics/yolov5", "yolov5s") #YOLOv5 Nano model: yolov5n
+        self.yolomodel = YOLO("yolov5s.pt") #YOLOv5 Nano model: yolov5n
         self.subscripiton = self.create_subscription(
             Image,
             '/camera/image_color',
@@ -41,31 +40,34 @@ class BallTracker(Node):
                 point.z = 1.0
                 self.ballpub.publish(point)
 
-
-
         except CvBridgeError as e:
             self.get_logger().error(f"CvBridge error: {e}")
 
-
-
-
-
     def find_ball(self, image):
         results = self.yolomodel(image)
-        df = results.pandas().xyxy[0]
-        center_x, center_y = 0, 0
+        center_x, center_y = -1.0, -1.0
 
-        for _, row in df.iterrows():
+        for result in results:
+            boxes = result.boxes.xyxy.cpu().numpy()
+            confidences = result.boxes.conf.cpu().numpy()
+            class_ids = result.boxes.cls.cpu().numpy().astype(int)
+            class_names = result.names 
 
-            x1, y1, x2, y2 = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
-
-            if row['name'] == "sports ball":
-                if row['confidence'] > 0.50:
+            for i, (box, conf, cls_id) in enumerate(zip(boxes, confidences, class_ids)):
+                if class_names[cls_id] == "sports ball" and conf > 0.50:
+                    x1, y1, x2, y2 = map(int, box)
                     cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
                     center_x = int((x1 + x2) / 2)
                     center_y = int((y1 + y2) / 2)
-                    cv2.putText(image, f"{row['name']} {row['confidence']:.2f}", (x1, y1 - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                    cv2.putText(
+                        image,
+                        f"{class_names[cls_id]} {conf:.2f}",
+                        (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.9,
+                        (0, 255, 0),
+                        2,
+                    )
 
         return image, center_x, center_y
 
