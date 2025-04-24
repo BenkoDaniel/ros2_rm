@@ -103,6 +103,10 @@ class MAPPO:
         self.policies = [ActorCritic(obs_dim, action_dim, action_space_type) for _ in range(n_agents)]
         self.old_policies = [ActorCritic(obs_dim, action_dim, action_space_type) for _ in range(n_agents)]
 
+        self.value_loss_history = [[] for agent in range(n_agents)]
+        self.smoothed_loss = [0.0 for agent in range(n_agents)]
+        self.smoothing_factor = 0.9
+
         for policy in self.policies:
             for layer in policy.shared_layers:
                 if isinstance(layer, nn.Linear):
@@ -177,7 +181,7 @@ class MAPPO:
         dones = torch.FloatTensor(np.array([t[4] for t in batch]))
         old_log_probs = torch.FloatTensor(np.array([t[5] for t in batch]))
         agent_indices = np.array([t[6] for t in batch])
-        
+
         for agent_idx in range(self.n_agents):
             mask = (agent_indices == agent_idx)
             if not mask.any():
@@ -206,7 +210,8 @@ class MAPPO:
             
             returns = returns.to(self.device)
             advantages = advantages.to(self.device)
-            
+            epoch_losses = []
+
             for _ in range(K_EPOCHS):
                 log_probs, values, entropy = self.policies[agent_idx].evaluate(agent_obs, agent_actions)
                 
@@ -220,11 +225,17 @@ class MAPPO:
                 entropy_loss = entropy.mean()
                 
                 loss = actor_loss + critic_loss - ENTROPY_COEF * entropy_loss
-                
+                epoch_losses.append(loss)
                 self.optimizers[agent_idx].zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.policies[agent_idx].parameters(), max_norm=1.0)
                 self.optimizers[agent_idx].step()
+
+            avg_epoch_loss = np.mean(epoch_losses)
+            self.smoothed_loss[agent_idx] = (
+                self.smoothing_factor * self.smoothed_loss[agent_idx] + (1 - self.smoothing_factor) * avg_epoch_loss
+            )
+            self.value_loss_history[agent_idx].append(self.smoothed_loss[agent_idx])
 
     def load_models(self, episode=None):
         suffix = f"_ep_{episode}" if episode is not None else "_final"
@@ -251,6 +262,14 @@ class MAPPO:
         if episode > 0:
             self.writer.add_scalar('Time/Steps_per_second', timesteps, episode)
 
+        for i in range(self.n_agents):
+            if len(self.value_loss_history[i]>0):
+                last_loss = self.value_loss_history[i][-1]
+                self.writer.add_scalar(f'ValueLoss/Agent_{i}', last_loss, episode)
+        if all(len(h) > 0 for h in self.value_loss_history):
+            total_loss = sum(h[-1] for h in self.value_loss_history)
+            self.writer.add_scalar(f'ValueLoss/Total', total_loss, episode)
+
 def train(reload=True, resume_episode=None):
     mappo = MAPPO(n_agents, obs_dim, action_dim, action_space_type)
     episode_rewards = []
@@ -274,9 +293,9 @@ def train(reload=True, resume_episode=None):
                 
                 for i, agent in enumerate(env.agents):
                     action, log_prob = mappo.act(obs[agent], i)
-                    if episode < 100:
-                        action += np.random.normal(0, 0.2, size=action.shape)
-                        action = np.clip(action, action_low, action_high)
+                    #if episode < 100:
+                    #    action += np.random.normal(0, 0.2, size=action.shape)
+                    #    action = np.clip(action, action_low, action_high)
                     actions[agent] = [float(x) for x in action]
                     log_probs[agent] = log_prob
                 
