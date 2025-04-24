@@ -231,7 +231,7 @@ class MAPPO:
                 torch.nn.utils.clip_grad_norm_(self.policies[agent_idx].parameters(), max_norm=1.0)
                 self.optimizers[agent_idx].step()
 
-            avg_epoch_loss = np.mean(epoch_losses)
+            avg_epoch_loss = np.mean([loss.detach().cpu().numpy() for loss in epoch_losses])
             self.smoothed_loss[agent_idx] = (
                 self.smoothing_factor * self.smoothed_loss[agent_idx] + (1 - self.smoothing_factor) * avg_epoch_loss
             )
@@ -263,7 +263,7 @@ class MAPPO:
             self.writer.add_scalar('Time/Steps_per_second', timesteps, episode)
 
         for i in range(self.n_agents):
-            if len(self.value_loss_history[i]>0):
+            if len(self.value_loss_history[i])>0:
                 last_loss = self.value_loss_history[i][-1]
                 self.writer.add_scalar(f'ValueLoss/Agent_{i}', last_loss, episode)
         if all(len(h) > 0 for h in self.value_loss_history):
