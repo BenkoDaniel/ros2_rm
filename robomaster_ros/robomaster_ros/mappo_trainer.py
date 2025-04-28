@@ -26,15 +26,15 @@ action_low = env.action_space(env.possible_agents[0]).low[0]
 n_agents = len(env.possible_agents)
 
 LR_ACTOR = 1e-5
-LR_CRITIC = 1e-5
+LR_CRITIC = 3e-5
 GAMMA = 0.99
 LAMDA = 0.95
-EPS_CLIP = 0.3
-K_EPOCHS = 10
+EPS_CLIP = 0.15
+K_EPOCHS = 4
 BUFFER_SIZE = 10000
 BATCH_SIZE = 64
 UPDATE_INTERVAL = 100
-ENTROPY_COEF = 0.1
+ENTROPY_COEF = 0.01
 LOG_STD_MIN = -20
 LOG_STD_MAX = 2
 
