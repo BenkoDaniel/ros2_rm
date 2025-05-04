@@ -25,16 +25,16 @@ action_low = env.action_space(env.possible_agents[0]).low[0]
 
 n_agents = len(env.possible_agents)
 
-LR_ACTOR = 1e-5
-LR_CRITIC = 3e-5
+LR_ACTOR = 5e-5
+LR_CRITIC = 5e-5
 GAMMA = 0.99
 LAMDA = 0.95
-EPS_CLIP = 0.15
+EPS_CLIP = 0.2
 K_EPOCHS = 4
 BUFFER_SIZE = 10000
 BATCH_SIZE = 64
 UPDATE_INTERVAL = 100
-ENTROPY_COEF = 0.01
+ENTROPY_COEF = 0.005
 LOG_STD_MIN = -20
 LOG_STD_MAX = 2
 
@@ -92,7 +92,7 @@ class ActorCritic(nn.Module):
         
         return log_prob, value, entropy
 
-class MAPPO:
+class IPPO:
     def __init__(self, n_agents, obs_dim, action_dim, action_space_type):
         self.n_agents = n_agents
         self.action_space_type = action_space_type
@@ -271,17 +271,17 @@ class MAPPO:
             self.writer.add_scalar(f'ValueLoss/Total', total_loss, episode)
 
 def train(reload=True, resume_episode=None):
-    mappo = MAPPO(n_agents, obs_dim, action_dim, action_space_type)
+    ippo = IPPO(n_agents, obs_dim, action_dim, action_space_type)
     episode_rewards = []
 
     if reload:
-        if not mappo.load_models(resume_episode):
+        if not ippo.load_models(resume_episode):
             print("Failed to load models, starting from scratch")
     
     try:
         for episode in range(1000):
             obs, info = env.reset()
-            time.sleep(1)
+            time.sleep(0.1)
             episode_reward = 0
             individual_rewards = { "robot1": 0, "robot2": 0 }
             done = False
@@ -292,7 +292,7 @@ def train(reload=True, resume_episode=None):
                 log_probs = {}
                 
                 for i, agent in enumerate(env.agents):
-                    action, log_prob = mappo.act(obs[agent], i)
+                    action, log_prob = ippo.act(obs[agent], i)
                     #if episode < 100:
                     #    action += np.random.normal(0, 0.2, size=action.shape)
                     #    action = np.clip(action, action_low, action_high)
@@ -320,32 +320,32 @@ def train(reload=True, resume_episode=None):
                         log_probs[agent], 
                         i
                     )
-                    mappo.store_transition(transition)
+                    ippo.store_transition(transition)
                 
                 obs = next_obs
                 episode_reward += sum(rewards.values())
                 timesteps += 1
                 
-                if len(mappo.buffer) >= BATCH_SIZE and len(mappo.buffer) % UPDATE_INTERVAL == 0:
-                    mappo.update_old_policies()
-                    mappo.update()
+                if len(ippo.buffer) >= BATCH_SIZE and len(ippo.buffer) % UPDATE_INTERVAL == 0:
+                    ippo.update_old_policies()
+                    ippo.update()
             
             episode_rewards.append(episode_reward)
-            mappo.log_metrics(episode, individual_rewards, timesteps)
+            ippo.log_metrics(episode, individual_rewards, timesteps)
             print(f"Episode {episode}, Reward: {individual_rewards}, Timesteps: {timesteps}")
             
             if (episode + 1) % 10 == 0:
                 if not os.path.exists('models'):
                     os.makedirs('models')
                 for i in range(n_agents):
-                    torch.save(mappo.policies[i].state_dict(), f'models/agent_{i}_ep_{episode+1}.pth')
+                    torch.save(ippo.policies[i].state_dict(), f'models/agent_{i}_ep_{episode+1}.pth')
     
     except KeyboardInterrupt:
         print("Training interrupted. Saving models...")
         if not os.path.exists('models'):
             os.makedirs('models')
         for i in range(n_agents):
-            torch.save(mappo.policies[i].state_dict(), f'models/agent_{i}_final.pth')
+            torch.save(ippo.policies[i].state_dict(), f'models/agent_{i}_final.pth')
     finally:
         env.close()
 
