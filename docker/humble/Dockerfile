@@ -15,9 +15,9 @@ RUN mkdir -p $ROS_WS/src
 WORKDIR $ROS_WS/src
 RUN git clone https://github.com/BenkoDaniel/ros2_rm.git
 
-# Install Python dependencies if any
-# COPY requirements.txt $ROS_WS/src/your-repo/
-# RUN pip3 install -r requirements.txt
+
+COPY requirements.txt $ROS_WS/src/robomaster_ros/
+RUN pip3 install -r requirements.txt
 
 WORKDIR $ROS_WS
 RUN . /opt/ros/humble/setup.sh && \
