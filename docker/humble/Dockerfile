@@ -1,46 +1,31 @@
 FROM ros:humble
-#MAINTAINER Jerome Guzzi "jerome@idsia.ch"
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    locales \
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ROS_WS=/ros2_rm
+
+RUN apt-get update && apt-get install -y \
+    gazebo11 \
+    ros-humble-gazebo-ros-pkgs \
     python3-pip \
-    ros-humble-xacro \
-    ros-humble-cv-bridge \
-    ros-humble-joint-state-publisher \
-    ros-humble-joy \
-    ros-humble-joy-teleop \
-    ros-humble-joy-linux \
-    libopus-dev \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN locale-gen en_US.UTF-8
+RUN mkdir -p $ROS_WS/src
 
-SHELL ["/bin/bash", "-c"]
+WORKDIR $ROS_WS/src
+RUN git clone https://github.com/BenkoDaniel/ros2_rm.git
 
-RUN mkdir -p /ros_ws/src \
-    && cd /ros_ws \
-    && git clone https://github.com/ros/urdfdom.git --branch humble src/urdfdom \
-    && git clone https://github.com/berndpfrommer/ffmpeg_image_transport_msgs.git \
-    && source /ros_entrypoint.sh \
-    #&& source /opt/ros/humble/setup.bash \
-    && colcon build --install-base /opt/ros/ws --merge-install \
-    && rm -r /ros_ws
+# Install Python dependencies if any
+# COPY requirements.txt $ROS_WS/src/your-repo/
+# RUN pip3 install -r requirements.txt
 
-RUN /bin/sed -i \
-  '/source "\/opt\/ros\/humble\/setup.bash"/a source "\/opt\/ros\/ws\/setup.bash"' \
-  /ros_entrypoint.sh
+WORKDIR $ROS_WS
+RUN . /opt/ros/humble/setup.sh && \
+    colcon build
 
-RUN python3 -m pip install -U numpy numpy-quaternion PyYaml av
-RUN python3 -m pip install git+https://github.com/jeguzzi/RoboMaster-SDK.git
-RUN python3 -m pip install git+https://github.com/jeguzzi/RoboMaster-SDK.git#"egg=libmedia_codec&subdirectory=lib/libmedia_codec"
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+RUN echo "source $ROS_WS/install/setup.bash" >> ~/.bashrc
 
-RUN mkdir -p /ros_ws/src \
-    && cd /ros_ws \
-    && git clone https://github.com/jeguzzi/robomaster_ros.git src/robomaster_ros \
-    && source /ros_entrypoint.sh \
-    #&& source /opt/ros/humble/setup.bash \
-    && colcon build --install-base /opt/ros/ws --merge-install
-    #&& rm -r /ros_ws
+CMD ["bash", "-c", "source /opt/ros/humble/setup.bash && source $ROS_WS/install/setup.bash && ros2 launch robomaster_ros simulation.launch.py"]
+CMD ["bash", "-c", "python3 $ROS_WS/src/robomaster_ros/robomaster_ros/robomaster_ros/ippo_train.py"]
 
-ENTRYPOINT ["/ros_entrypoint.sh"]
-CMD ["bash"]
