@@ -4,6 +4,7 @@
   <include file="$(find-pkg-share gazebo_ros)/launch/gazebo.launch.py">
     <arg name="world" value="$(var world)"/>
     <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="false"/>
   </include>
 
   <include file="$(find-pkg-share robomaster_description)/launch/controller.launch.py"/>

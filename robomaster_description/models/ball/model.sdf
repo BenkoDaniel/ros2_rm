@@ -1,0 +1,62 @@
+<?xml version='1.0'?>
+<sdf version='1.4'>
+  <model name='ball'>
+    <pose>0 0 1 0 0 0</pose>
+    <static>false</static>
+    <link name='ball_link'>
+      <collision name='ball_collision'>
+        <geometry>
+          <sphere>
+            <radius>0.07</radius>
+          </sphere>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <soft_red_limit>0.001</soft_red_limit>
+              <soft_erp>0.7</soft_erp>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+      <visual name='ball_visual'>
+        <geometry>
+          <sphere>
+            <radius>0.07</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>0 1 0 1</ambient>
+          <diffuse>0 1 0 1</diffuse>
+          <specular>0 0 0 1</specular>
+          <emissive>0 0 0 1</emissive>
+        </material>
+      </visual>
+      <inertial>
+        <mass>0.45</mass>
+        <inertia>
+          <ixx>0.00025</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.00025</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.00025</izz>
+        </inertia>
+        <stiffness>10000.0</stiffness>
+        <damping_ratio>0.7</damping_ratio>
+      </inertial>
+      <physics name="default" type="ode">
+        <max_step_size>0.01</max_step_size>
+        <real_time_factor>1.0</real_time_factor>
+        <real_time_update_rate>100.0</real_time_update_rate>
+        <gravity>0 -9.81 0</gravity>
+      </physics>
+    </link>
+  </model>
+</sdf>

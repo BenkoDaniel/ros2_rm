@@ -1,0 +1,41 @@
+<?xml version='1.0'?>
+<sdf version='1.4'>
+  <model name="walls">
+    <pose>0 0 0.1 0 0 0</pose>
+    <static>true</static>
+    <link name="left">
+      <pose>-0.55 0 0 0 0 0</pose>
+      <collision name="collision_left">
+        <geometry>
+          <box>
+            <size>0.1 2 0.2</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual_left">
+        <geometry>
+          <box>
+            <size>0.1 2 0.2</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+    <link name="right">
+      <pose>0.55 0 0 0 0 0</pose>
+      <collision name="collision_right">
+        <geometry>
+          <box>
+            <size>0.1 2 0.2</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual_right">
+        <geometry>
+          <box>
+            <size>0.1 2 0.2</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
