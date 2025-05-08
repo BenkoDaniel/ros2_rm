@@ -22,17 +22,17 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/robomaster:latest .
+          docker build -t ghcr.io/benkodaniel/robomaster:latest .
 
       - name: Test Docker image
         run: |
           docker run --rm -it \
             --env DISPLAY=:0 \
             --env LIBGL_ALWAYS_SOFTWARE=1 \
-            ghcr.io/${{ github.repository_owner }}/robomaster:latest \
+            ghcr.io/benkodaniel/robomaster:latest \
             bash -c "source /opt/ros/humble/setup.bash && ros2 node list"
 
       - name: Push Docker image
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/robomaster:latest
+          docker push ghcr.io/benkodaniel/robomaster:latest
