@@ -26,7 +26,7 @@ jobs:
 
       - name: Test Docker image
         run: |
-          docker run --rm -it \
+          docker run --rm \
             --env DISPLAY=:0 \
             --env LIBGL_ALWAYS_SOFTWARE=1 \
             ghcr.io/benkodaniel/robomaster:latest \
